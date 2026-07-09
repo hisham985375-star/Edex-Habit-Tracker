@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mentor Login - Edex Habit Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="auth-body">
+  <div class="auth-container premium-shadow">
+    <div class="text-center mb-4">
+      <div style="margin-bottom: 16px;"></div>
+      <h2 style="font-size: 1.75rem; font-weight: 700; color: var(--text-primary);">Mentor Portal</h2>
+      <p style="color: var(--text-secondary); margin-top: 4px;">Log in to review student diaries</p>
+    </div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" class="premium-input" required placeholder="Enter Your Email">
+      </div>
+      <div class="form-group" style="position: relative;">
+        <label for="password">Password</label>
+        <input type="password" id="password" class="premium-input" required placeholder="Enter Your Password" style="padding-right: 60px !important;">
+        <button type="button" onclick="togglePassword('password', this)" style="position: absolute; right: 12px; top: 38px; background: none; border: none; color: #ceff00; font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 0;">Show</button>
+      </div>
+      <div id="errorMsg" class="error-msg" style="padding: 10px; background: #fee2e2; border-radius: 6px; margin-bottom: 12px; display: none;"></div>
+      
+      <button type="submit" class="btn btn-primary premium-btn mt-4" id="submitBtn">Log In as Mentor</button>
+    </form>
+
+    <div class="text-center mt-4">
+      <p style="font-size: 0.9rem;">Not registered as a mentor? <a href="mentor_signup.html" style="font-weight: 600;">Apply here</a></p>
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <p style="font-size: 0.8rem; color: var(--text-secondary);"><a href="login.html">Student Login &rarr;</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="supabaseClient.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    redirectIfLoggedIn();
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorMsg = document.getElementById('errorMsg');
+      const btn = document.getElementById('submitBtn');
+
+      errorMsg.style.display = 'none';
+      btn.textContent = 'Logging in...';
+      btn.disabled = true;
+
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        errorMsg.textContent = error.message;
+        errorMsg.style.display = 'block';
+        btn.textContent = 'Log In as Mentor';
+        btn.disabled = false;
+      } else {
+        window.location.href = 'mentor_dashboard.html';
+      }
+    });
+  </script>
+</body>
+</html>
+
+

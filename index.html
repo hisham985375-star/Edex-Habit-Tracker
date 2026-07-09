@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>EDEX Life School - Empowering Future Minds</title>
+  <link rel="stylesheet" href="styles.css?v=3">
+</head>
+<body class="landing-body">
+  
+  <nav class="landing-nav animate-slide-down">
+    <div class="logo-container">
+      <picture>
+        <source media="(max-width: 768px)" srcset="mobile%20logo.png">
+        <img src="mobile%20logo.png" alt="Edex Life School" style="height: 80px; width: auto;">
+      </picture>
+    </div>
+    <div class="nav-links">
+      <a href="login.html" class="nav-link">Student Login</a>
+      <a href="mentor_login.html" class="nav-link">Mentor Portal</a>
+      <a href="signup.html" class="nav-btn">Apply Now</a>
+    </div>
+  </nav>
+
+  <main class="landing-main">
+    <section class="hero-section">
+      <h1 class="hero-title animate-slide-up-1">Empowering<br>Future <span class="neon-text">Minds</span></h1>
+      <p class="hero-subtitle animate-slide-up-2">Track your habits, build your brand, and level up your life with our exclusive student cohort program.</p>
+      
+      <div class="hero-cta animate-slide-up-3">
+        <a href="signup.html" class="landing-primary-btn">Start Your Journey &rarr;</a>
+      </div>
+    </section>
+
+    <section class="features-section animate-fade-in-slow">
+      <div class="feature-card glass-card">
+        <h3>Master Your Habits</h3>
+        <p>Log your daily routine from sleep to meals, and watch your consistency grow.</p>
+      </div>
+      <div class="feature-card glass-card">
+        <h3>Build Your Brand</h3>
+        <p>Focus on your impact hour, startup garage, and power circles to level up.</p>
+      </div>
+      <div class="feature-card glass-card">
+        <h3>Mentor Feedback</h3>
+        <p>Get personalized reviews and suggestions from industry expert mentors.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabaseClient.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    // If they are already logged in, redirect them immediately to their dashboard
+    redirectIfLoggedIn();
+  </script>
+</body>
+</html>

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Review Diary - Edex Habit Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <style>
+    .date-changer-input {
+      background: #f5f3ff !important;
+      color: #4c1d95 !important;
+      border: 1px solid #c7d2fe !important;
+      padding: 10px 16px 10px 36px !important;
+      border-radius: 8px !important;
+      font-weight: 600 !important;
+      font-size: 0.95rem !important;
+      cursor: pointer !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      font-family: inherit !important;
+    }
+    .date-changer-input::placeholder { color: #8b5cf6 !important; }
+    @media (max-width: 768px) {
+      #reviewTitle { font-size: 1.6rem !important; word-break: break-word; letter-spacing: -0.5px; margin-top: 8px !important; margin-bottom: 4px !important; }
+      .header-subtitle-mobile { font-size: 0.85rem !important; color: #6b7280; }
+      .header.container { flex-direction: column !important; align-items: stretch !important; gap: 1.5rem !important; }
+      .header-top-row { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+      .header-actions-mobile { flex-direction: column !important; width: 100% !important; align-items: stretch !important; gap: 12px !important; margin-top: 10px !important; }
+      .header-actions-mobile > * { width: 100% !important; justify-content: center !important; box-sizing: border-box; }
+      .header-actions-mobile a { padding: 12px 16px !important; font-size: 1rem !important; }
+      .task-card-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+      .task-card-header > div { width: 100% !important; }
+      .task-card-header button { width: 100% !important; justify-content: center !important; margin-top: 8px; }
+      textarea { box-sizing: border-box !important; width: 100% !important; }
+      .card { 
+        position: relative !important; 
+        width: 100% !important; 
+        left: auto !important; 
+        top: auto !important; 
+        height: auto !important; 
+        padding: 1.25rem !important; 
+        margin-bottom: 1.5rem !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+        transform: none !important;
+        background: #ffffff !important;
+        border: 1px solid #f0f0f0 !important;
+      }
+      body { padding: 1rem !important; overflow-y: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="loader" class="loader" style="display: block;">Loading review...</div>
+
+  <div id="appContent" style="display: none;">
+    <header class="header container" style="margin-bottom: 2rem; border-bottom: none; display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; flex-wrap: wrap; gap: 1rem;">
+      <div class="header-top-row" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <a href="mentor_dashboard.html" style="background: #ffffff; color: #374151; border: 1px solid #d1d5db; padding: 8px 12px; border-radius: 8px; text-decoration: none; display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 0.9rem; transition: background 0.2s;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Back
+        </a>
+
+        <div>
+          <h1 id="reviewTitle" style="margin: 0; font-size: 2rem; font-weight: 700; color: #111;">Checklist</h1>
+          <p class="header-subtitle-mobile" style="margin: 0; color: #6b7280; font-size: 0.9rem; margin-top: 4px;">Track tasks. Get feedback. Improve every day.</p>
+        </div>
+      </div>
+      <div class="header-actions-mobile" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdXcv6W2vqTIX3cEYRQ0Q33e6MUt8opZj3fb9ky6Fsna0EqdQ/viewform?pli=1" target="_blank" class="btn btn-sm" style="background: #ffffff; color: #4c1d95; border: 1px solid #c7d2fe; display: flex; align-items: center; justify-content: center; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none; gap: 6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          View Feedback Responses
+        </a>
+        <div style="position: relative; flex-grow: 1; min-width: 200px;">
+          <input type="text" id="dateChanger" class="date-changer-input" placeholder="Date: Loading...">
+          <svg style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #4c1d95; pointer-events: none; z-index: 10;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <div id="tasksContainer"></div>
+    </main>
+  </div>
+
+  <script src="supabaseClient.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    let mentor = null;
+    let studentId = null;
+    let reviewDate = null;
+    let dailyLog = null;
+    let allTasks = [];
+    let taskEntries = {};
+
+    async function init() {
+      const authData = await requireAuth('mentor');
+      if (!authData) return;
+      mentor = authData.user;
+
+      const params = new URLSearchParams(window.location.search);
+      studentId = params.get('studentId');
+      reviewDate = params.get('date');
+
+      if (!studentId || !reviewDate) {
+        window.location.href = 'mentor_dashboard.html';
+        return;
+      }
+
+      const { data: student } = await db.from('profiles').select('full_name').eq('id', studentId).single();
+      if (!student) return;
+
+      document.getElementById('reviewTitle').textContent = `Checklist of ${(student.full_name || '').toUpperCase()}`;
+      
+      const dateInput = document.getElementById('dateChanger');
+      flatpickr(dateInput, {
+        defaultDate: reviewDate,
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "F j, Y",
+        disableMobile: true,
+        onChange: function(selectedDates, dateStr) {
+          if (dateStr && dateStr !== reviewDate) {
+            window.location.href = `mentor_review.html?studentId=${studentId}&date=${dateStr}`;
+          }
+        }
+      });
+
+      await loadData();
+      renderTasks();
+
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('appContent').style.display = 'block';
+    }
+
+    async function loadData() {
+      const { data: tasks } = await db.from('tasks').select('*').order('sort_order', { ascending: true });
+      allTasks = tasks || [];
+
+      let { data: log } = await db.from('daily_logs')
+        .select('*')
+        .eq('user_id', studentId)
+        .eq('log_date', reviewDate)
+        .single();
+
+      if (!log) {
+        // No log exists for this date, they haven't started.
+        dailyLog = null;
+        return;
+      }
+      dailyLog = log;
+
+      const { data: entries } = await db.from('task_entries')
+        .select('*')
+        .eq('daily_log_id', dailyLog.id);
+      
+      (entries || []).forEach(e => {
+        taskEntries[e.task_id] = e;
+      });
+    }
+
+    async function toggleApproval(entryId, isCurrentlyApproved) {
+      const btn = document.getElementById(`btn-approve-${entryId}`);
+      if (btn) btn.disabled = true;
+
+      const newStatus = !isCurrentlyApproved;
+      const points = newStatus ? 1 : 0; // Default 1 pt per task for now
+
+      const { error } = await db.from('task_entries').update({
+        approved: newStatus,
+        points_awarded: points
+      }).eq('id', entryId);
+
+      if (error) {
+        alert('Error saving approval: ' + error.message);
+        if (btn) btn.disabled = false;
+        return;
+      }
+
+      // Reload to reflect changes
+      await loadData();
+      renderTasks();
+    }
+
+    async function saveMentorNote(entryId, taskId, btn) {
+      const input = document.getElementById(`note-${entryId}`);
+      const note = input.value.trim();
+      
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = 'Saving...';
+      }
+
+      const { error } = await db.from('task_entries').update({
+        mentor_note: note || null
+      }).eq('id', entryId);
+      
+      if (error) {
+        alert('Error saving note: ' + error.message);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = 'Save Note';
+        }
+        return;
+      }
+      
+      if (btn) {
+        const originalBg = btn.style.background;
+        const originalColor = btn.style.color;
+        const originalBorder = btn.style.border;
+        
+        btn.innerHTML = '<svg style="margin-right: 6px; width:16px; height:16px; vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>Saved!';
+        btn.style.background = '#10b981';
+        btn.style.color = 'white';
+        btn.style.border = '1px solid #10b981';
+        
+        setTimeout(() => {
+          btn.innerHTML = '<svg style="margin-right: 6px; width:16px; height:16px; vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save Note';
+          btn.style.background = originalBg;
+          btn.style.color = originalColor;
+          btn.style.border = originalBorder;
+          btn.disabled = false;
+        }, 2000);
+      }
+    }
+
+    function renderTasks() {
+      const container = document.getElementById('tasksContainer');
+      container.innerHTML = '';
+
+      if (!dailyLog) {
+        container.innerHTML = '<div class="card"><p style="text-align:center; margin:0;">Student has not started a diary on this date.</p></div>';
+        return;
+      }
+
+      allTasks.forEach(task => {
+        const entry = taskEntries[task.id];
+        
+        const card = document.createElement('div');
+        card.className = 'card';
+        
+        const numberColor = task.sort_order % 2 !== 0 ? '#f5f3ff' : '#f0f9ff';
+        const numberTextColor = task.sort_order % 2 !== 0 ? '#4c1d95' : '#0369a1';
+
+        let headerHtml = `
+          <div class="task-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <div style="width: 44px; height: 44px; border-radius: 10px; background: ${numberColor}; color: ${numberTextColor}; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700;">
+                ${task.sort_order}
+              </div>
+              <h3 style="margin: 0; font-size: 1.15rem; font-weight: 600; color: #111;">${task.title}</h3>
+            </div>
+          </div>
+        `;
+        
+        let contentHtml = '<p style="color:var(--text-secondary); font-style:italic;">No entry submitted yet.</p>';
+        let reviewActions = '';
+
+        if (entry && entry.content) {
+          const isApproved = entry.approved;
+          headerHtml = `
+            <div class="task-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="width: 44px; height: 44px; border-radius: 10px; background: ${numberColor}; color: ${numberTextColor}; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700;">
+                  ${task.sort_order}
+                </div>
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 600; color: #111;">${task.title}</h3>
+              </div>
+              <div>
+                <button id="btn-approve-${entry.id}" class="btn" style="${isApproved ? 'background: #10b981; color: white; border: none; padding: 10px 16px; border-radius: 8px;' : 'background: #635bff; color: white; border: none; padding: 10px 16px; border-radius: 8px;'}" onclick="toggleApproval('${entry.id}', ${isApproved})">
+                  <svg style="margin-right: 6px; width:18px; height:18px; vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  ${isApproved ? 'Approved' : 'Approve Task (+1 Pt)'}
+                </button>
+              </div>
+            </div>
+          `;
+
+          let extraLogInfo = '';
+          if (task.title === 'Sleep' && dailyLog.sleep_hours) extraLogInfo = ` (Recorded: ${dailyLog.sleep_hours} hrs)`;
+          if (task.title === 'Weight' && dailyLog.weight) extraLogInfo = ` (Recorded: ${dailyLog.weight} kg)`;
+          if (task.title === 'Eat Smart') {
+            extraLogInfo = `
+              <ul style="font-size:0.875rem; margin-top:8px; padding-left:16px;">
+                <li>Breakfast: ${dailyLog.eat_smart_breakfast || '-'}</li>
+                <li>Lunch: ${dailyLog.eat_smart_lunch || '-'}</li>
+                <li>Tea: ${dailyLog.eat_smart_tea || '-'}</li>
+                <li>Dinner: ${dailyLog.eat_smart_dinner || '-'}</li>
+                <li>Total Cals: ${dailyLog.total_cals || '-'}</li>
+              </ul>
+            `;
+          }
+
+          if (entry.content && entry.content.startsWith('data:image/')) {
+            contentHtml = `
+              <div style="background: #fafafa; border: 1px solid #f3f4f6; padding: 18px; border-radius: 8px; margin-bottom: 1.5rem; text-align: center;">
+                <img src="${entry.content}" style="max-width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; max-height: 400px; object-fit: contain;">
+                ${extraLogInfo ? `<p style="margin-top:12px; color:#374151;">${extraLogInfo}</p>` : ''}
+              </div>
+            `;
+          } else {
+            contentHtml = `
+              <div style="background: #fafafa; border: 1px solid #f3f4f6; padding: 18px; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.6;">
+                <p style="color: #374151; margin: 0; white-space: pre-wrap;">${entry.content}${extraLogInfo}</p>
+              </div>
+            `;
+          }
+
+          reviewActions = `
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: #4b5563; font-weight: 600; font-size: 0.9rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#635bff" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Mentor Note
+              </div>
+              <textarea id="note-${entry.id}" placeholder="Provide feedback..." style="width: 100%; min-height: 80px; padding: 14px; border: 1px solid #e5e7eb; border-radius: 8px; outline: none; resize: vertical; font-family: inherit; font-size: 0.95rem; box-sizing: border-box;">${entry.mentor_note || ''}</textarea>
+              <div style="text-align: right; margin-top: 12px;">
+                <button class="btn btn-sm" style="background: white; border: 1px solid #c7d2fe; color: #4f46e5; font-weight: 600; padding: 8px 16px; border-radius: 8px; transition: all 0.2s;" onclick="saveMentorNote('${entry.id}', '${task.id}', this)">
+                  <svg style="margin-right: 6px; width:16px; height:16px; vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Save Note
+                </button>
+              </div>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          ${headerHtml}
+          ${contentHtml}
+          ${reviewActions}
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

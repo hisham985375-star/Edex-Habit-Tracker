@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mentor Sign Up - EDEX Life School</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="auth-body">
+  <div class="auth-container premium-shadow">
+    <div class="text-center mb-4">
+      <div style="margin-bottom: 16px;"></div>
+      <h2 style="font-size: 1.75rem; font-weight: 700; color: var(--text-primary);">Mentor Application</h2>
+      <p style="color: var(--text-secondary); margin-top: 4px;">Join the Faculty</p>
+    </div>
+
+    <form id="signupForm">
+      <div class="form-group">
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" class="premium-input" required placeholder="Enter Your Full Name">
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" class="premium-input" required placeholder="Enter Your Email">
+      </div>
+      <div class="form-group" style="position: relative;">
+        <label for="password">Password</label>
+        <input type="password" id="password" class="premium-input" required placeholder="Enter Your Password" style="padding-right: 60px !important;">
+        <button type="button" onclick="togglePassword('password', this)" style="position: absolute; right: 12px; top: 38px; background: none; border: none; color: #ceff00; font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 0;">Show</button>
+      </div>
+      <div class="form-group">
+        <label for="accessCode">Mentor Access Code</label>
+        <input type="text" id="accessCode" class="premium-input" required placeholder="Enter Access Code">
+      </div>
+      <div id="errorMsg" class="error-msg" style="padding: 10px; background: #fee2e2; color: #991b1b; border-radius: 6px; margin-bottom: 12px; display: none;"></div>
+      <div id="successMsg" style="padding: 10px; background: #dcfce7; color: #166534; border-radius: 6px; margin-bottom: 12px; display: none;"></div>
+      
+      <button type="submit" class="btn btn-primary premium-btn mt-4" id="submitBtn">Register as Mentor</button>
+    </form>
+
+    <div class="text-center mt-4">
+      <p style="font-size: 0.9rem;">Already have a mentor account? <a href="mentor_login.html" style="font-weight: 600;">Log in</a></p>
+    </div>
+  </div>
+
+  <script src="supabaseClient.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    redirectIfLoggedIn();
+
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const fullName = document.getElementById('fullName').value;
+      const accessCode = document.getElementById('accessCode').value.trim();
+      
+      const errorMsg = document.getElementById('errorMsg');
+      const successMsg = document.getElementById('successMsg');
+      const btn = document.getElementById('submitBtn');
+
+      errorMsg.style.display = 'none';
+      successMsg.style.display = 'none';
+      btn.textContent = 'Registering...';
+      btn.disabled = true;
+
+      // 1. Verify access code
+      const { data: isValid, error: rpcError } = await db.rpc('validate_access_code', {
+        input_code: accessCode,
+        input_role: 'mentor'
+      });
+
+      if (rpcError) {
+        console.error("RPC Error:", rpcError);
+        errorMsg.textContent = 'Database error: ' + rpcError.message + '. Ensure schema.sql is fully applied.';
+        errorMsg.style.display = 'block';
+        btn.textContent = 'Register as Mentor';
+        btn.disabled = false;
+        return;
+      }
+
+      if (!isValid) {
+        errorMsg.textContent = 'Invalid mentor access code';
+        errorMsg.style.display = 'block';
+        btn.textContent = 'Register as Mentor';
+        btn.disabled = false;
+        return;
+      }
+
+      // 2. Sign up
+      const { data, error } = await db.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            role: 'mentor'
+          }
+        }
+      });
+
+      if (error) {
+        errorMsg.textContent = error.message;
+        errorMsg.style.display = 'block';
+        btn.textContent = 'Register as Mentor';
+        btn.disabled = false;
+      } else {
+        if (!data.session) {
+          successMsg.textContent = 'Success! Please check your email for a confirmation link before logging in.';
+          successMsg.style.display = 'block';
+          btn.textContent = 'Register as Mentor';
+          btn.disabled = false;
+        } else {
+          window.location.href = 'mentor_dashboard.html';
+        }
+      }
+    });
+  </script>
+</body>
+</html>

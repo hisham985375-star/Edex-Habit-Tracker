@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance - Edex Habit Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <style>
+    @media (max-width: 768px) {
+      .table-responsive-mobile { display: block; width: 100%; overflow-x: hidden; }
+      .table-responsive-mobile thead { display: none; }
+      .table-responsive-mobile tbody { display: block; width: 100%; }
+      .table-responsive-mobile tr { display: flex; flex-direction: column; margin-bottom: 1rem; padding: 1rem; border: 1px solid #e9d5ff; border-radius: 12px; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+      .table-responsive-mobile td { display: block; width: 100%; padding: 0 !important; text-align: left !important; border: none !important; }
+      .student-name-mobile { font-size: 1.1rem; margin-bottom: 12px; color: #4c1d95; font-weight: 700 !important; }
+      .attendance-btns-mobile { display: flex !important; width: 100%; gap: 8px; justify-content: space-between; }
+      .attendance-btns-mobile button { flex: 1; min-width: 0; padding: 10px 4px !important; font-size: 0.85rem !important; }
+      .date-select-mobile-wrapper { flex-direction: column !important; align-items: stretch !important; gap: 16px !important; margin-bottom: 24px !important; }
+      .date-select-mobile-wrapper input { width: 100% !important; }
+      .mentor-header { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1rem 0; }
+      .header-actions { width: 100%; }
+      .header-actions a { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body style="background: #fafafa;">
+  <div id="loader" class="loader" style="display: block;">Loading attendance...</div>
+
+  <div id="appContent" style="display: none;">
+    <div class="container" style="max-width: 1100px;">
+      <header class="mentor-header">
+        <div class="header-left">
+          <div class="mentor-avatar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div>
+            <h1 class="header-title">Attendance</h1>
+            <p class="header-subtitle">Manage daily student attendance</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <a href="mentor_dashboard.html" class="btn-outline-purple">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to Dashboard
+          </a>
+        </div>
+      </header>
+
+      <main>
+        <div class="review-card">
+          <svg style="position:absolute; top:24px; right:24px; opacity:0.3; z-index:0;" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="2" cy="2" r="1.5" fill="#a855f7"/><circle cx="14" cy="2" r="1.5" fill="#a855f7"/><circle cx="26" cy="2" r="1.5" fill="#a855f7"/><circle cx="38" cy="2" r="1.5" fill="#a855f7"/>
+            <circle cx="2" cy="14" r="1.5" fill="#a855f7"/><circle cx="14" cy="14" r="1.5" fill="#a855f7"/><circle cx="26" cy="14" r="1.5" fill="#a855f7"/><circle cx="38" cy="14" r="1.5" fill="#a855f7"/>
+            <circle cx="2" cy="26" r="1.5" fill="#a855f7"/><circle cx="14" cy="26" r="1.5" fill="#a855f7"/><circle cx="26" cy="26" r="1.5" fill="#a855f7"/><circle cx="38" cy="26" r="1.5" fill="#a855f7"/>
+          </svg>
+
+          <div class="review-card-content">
+            <div class="date-select-mobile-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; position: relative; z-index: 1;">
+              <div class="card-title-group">
+                <h2 id="dateDisplay" class="card-title">Attendance for Today</h2>
+                <div class="gradient-line"></div>
+              </div>
+              <input type="text" id="dateSelect" class="form-input-custom" style="width: 200px;">
+            </div>
+
+            <table class="table table-responsive-mobile" style="position: relative; z-index: 1; margin-top: 10px;">
+              <thead>
+                <tr>
+                  <th style="background: rgba(243, 232, 255, 0.5); border-bottom: 1px solid #e9d5ff; color: #6b21a8;">Student Name</th>
+                  <th style="background: rgba(243, 232, 255, 0.5); border-bottom: 1px solid #e9d5ff; color: #6b21a8; text-align: right;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="attendanceBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="supabaseClient.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    let mentor = null;
+    let selectedDate = null;
+    let students = [];
+    let attendanceRecords = {};
+
+    async function init() {
+      const authData = await requireAuth('mentor');
+      if (!authData) return;
+      mentor = authData.user;
+
+      selectedDate = new Date().toISOString().split('T')[0];
+      const dateSelect = document.getElementById('dateSelect');
+      
+      flatpickr(dateSelect, {
+        defaultDate: selectedDate,
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d-m-Y",
+        disableMobile: true,
+        onChange: async function(selectedDates, dateStr, instance) {
+          if (!dateStr) return;
+          selectedDate = dateStr;
+          await loadAttendance();
+        }
+      });
+
+      const { data } = await db.from('profiles').select('id, full_name').eq('role', 'student').order('full_name');
+      students = data || [];
+
+      await loadAttendance();
+      
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('appContent').style.display = 'block';
+    }
+
+    async function loadAttendance() {
+      const today = new Date().toISOString().split('T')[0];
+      if (selectedDate === today) {
+        document.getElementById('dateDisplay').textContent = 'Today Attendance';
+      } else {
+        document.getElementById('dateDisplay').textContent = `Attendance for ${selectedDate}`;
+      }
+      
+      const { data: records } = await db.from('attendance')
+        .select('*')
+        .eq('date', selectedDate);
+      
+      attendanceRecords = {};
+      (records || []).forEach(r => {
+        attendanceRecords[r.user_id] = r;
+      });
+
+      renderTable();
+    }
+
+    async function markStatus(studentId, status) {
+      const existing = attendanceRecords[studentId];
+      
+      // Optimistic UI update
+      attendanceRecords[studentId] = { ...existing, status };
+      renderTable();
+
+      if (existing?.id) {
+        await db.from('attendance')
+          .update({ status, marked_by: mentor.id })
+          .eq('id', existing.id);
+      } else {
+        const { data } = await db.from('attendance')
+          .insert({
+            user_id: studentId,
+            date: selectedDate,
+            status,
+            marked_by: mentor.id
+          }).select().single();
+        
+        if (data) attendanceRecords[studentId] = data;
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('attendanceBody');
+      tbody.innerHTML = '';
+
+      if (students.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding: 24px;">No students found.</td></tr>';
+        return;
+      }
+
+      students.forEach(student => {
+        const tr = document.createElement('tr');
+        const status = attendanceRecords[student.id]?.status || '';
+
+        const getBtnStyle = (targetStatus, color) => {
+          if (status === targetStatus) {
+            return `background-color: ${color}; border-color: ${color}; color: black;`;
+          }
+          return `background-color: transparent; border-color: var(--border-light); color: var(--text-secondary);`;
+        };
+
+        tr.innerHTML = `
+          <td style="font-weight: 500;" class="student-name-mobile">${(student.full_name || '').toUpperCase()}</td>
+          <td style="text-align: right;">
+            <div class="attendance-btns-mobile" style="display: inline-flex; gap: 8px;">
+              <button class="btn btn-sm" style="${getBtnStyle('present', '#15803d')}" onclick="markStatus('${student.id}', 'present')">Present</button>
+              <button class="btn btn-sm" style="${getBtnStyle('late', '#b45309')}" onclick="markStatus('${student.id}', 'late')">Late</button>
+              <button class="btn btn-sm" style="${getBtnStyle('absent', '#dc2626')}" onclick="markStatus('${student.id}', 'absent')">Absent</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

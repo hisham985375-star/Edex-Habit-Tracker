@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard - Edex Habit Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="background: #fafafa;">
+  <div id="loader" class="loader" style="display: block;">Loading leaderboard...</div>
+
+  <div id="appContent" style="display: none;">
+    <div class="container" style="max-width: 1100px;">
+      <header class="mentor-header">
+        <div class="header-left">
+          <div class="mentor-avatar" style="background: #fef08a; color: #a16207;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div>
+            <h1 class="header-title">Leaderboard</h1>
+            <p class="header-subtitle">Top performers and points</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <a href="#" id="backBtn" class="btn-outline-purple">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back
+          </a>
+        </div>
+      </header>
+
+      <main>
+        <div class="review-card">
+          <svg style="position:absolute; top:24px; right:24px; opacity:0.3; z-index:0;" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="2" cy="2" r="1.5" fill="#a855f7"/><circle cx="14" cy="2" r="1.5" fill="#a855f7"/><circle cx="26" cy="2" r="1.5" fill="#a855f7"/><circle cx="38" cy="2" r="1.5" fill="#a855f7"/>
+            <circle cx="2" cy="14" r="1.5" fill="#a855f7"/><circle cx="14" cy="14" r="1.5" fill="#a855f7"/><circle cx="26" cy="14" r="1.5" fill="#a855f7"/><circle cx="38" cy="14" r="1.5" fill="#a855f7"/>
+            <circle cx="2" cy="26" r="1.5" fill="#a855f7"/><circle cx="14" cy="26" r="1.5" fill="#a855f7"/><circle cx="26" cy="26" r="1.5" fill="#a855f7"/><circle cx="38" cy="26" r="1.5" fill="#a855f7"/>
+          </svg>
+
+          <div class="review-card-content">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; position: relative; z-index: 1;">
+              <div class="card-title-group">
+                <h2 class="card-title">Rankings</h2>
+                <div class="gradient-line"></div>
+              </div>
+              
+              <div style="display: flex; background: #f3f4f6; padding: 4px; border-radius: 12px; gap: 4px;">
+                <button class="seg-btn" id="btnDaily" onclick="setFilter('daily')" style="padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; background: transparent; color: #6b7280;">Daily</button>
+                <button class="seg-btn" id="btnWeekly" onclick="setFilter('weekly')" style="padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; background: transparent; color: #6b7280;">Weekly</button>
+                <button class="seg-btn" id="btnMonthly" onclick="setFilter('monthly')" style="padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; background: transparent; color: #6b7280;">Monthly</button>
+              </div>
+            </div>
+
+            <div id="winnerBanner" style="display: none; background: linear-gradient(135deg, #fffbeb, #fef08a); border: 1px solid #fde047; border-radius: 16px; padding: 32px; text-align: center; margin-bottom: 32px; position: relative; z-index: 1; box-shadow: 0 10px 25px rgba(234, 179, 8, 0.2);">
+              <div style="font-size: 3rem; margin-bottom: 12px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">👑</div>
+              <h2 style="color: #854d0e; margin-bottom: 8px; font-size: 1.8rem; font-weight: 800;" id="winnerText">Winner!</h2>
+              <p style="font-size: 1.2rem; font-weight: 600; color: #a16207; margin: 0;" id="winnerSub"></p>
+            </div>
+
+            <table class="table" style="position: relative; z-index: 1; margin-top: 10px;">
+              <thead>
+                <tr>
+                  <th style="background: rgba(243, 232, 255, 0.5); border-bottom: 1px solid #e9d5ff; color: #6b21a8;">Rank</th>
+                  <th style="background: rgba(243, 232, 255, 0.5); border-bottom: 1px solid #e9d5ff; color: #6b21a8;">Student</th>
+                  <th style="background: rgba(243, 232, 255, 0.5); border-bottom: 1px solid #e9d5ff; color: #6b21a8; text-align: right;">Points</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboardBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="supabaseClient.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    let currentFilter = 'daily';
+    let isMentor = false;
+
+    async function init() {
+      // Check auth but don't strictly require a specific role, just any valid user
+      const { data: { session } } = await db.auth.getSession();
+      if (!session) {
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      const { data: profile } = await db.from('profiles').select('role').eq('id', session.user.id).single();
+      isMentor = profile?.role === 'mentor';
+      document.getElementById('backBtn').href = isMentor ? 'mentor_dashboard.html' : 'dashboard.html';
+
+      setFilter('daily');
+      
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('appContent').style.display = 'block';
+    }
+
+    async function setFilter(filter) {
+      currentFilter = filter;
+      
+      // Update buttons
+      ['Daily', 'Weekly', 'Monthly'].forEach(f => {
+        const btn = document.getElementById('btn' + f);
+        if (f.toLowerCase() === filter) {
+          btn.style.background = '#ffffff';
+          btn.style.color = '#7c3aed';
+          btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+        } else {
+          btn.style.background = 'transparent';
+          btn.style.color = '#6b7280';
+          btn.style.boxShadow = 'none';
+        }
+      });
+
+      const now = new Date();
+      let startDate = new Date();
+      let endDate = new Date();
+      
+      if (filter === 'daily') {
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      } else if (filter === 'weekly') {
+        const day = now.getDay();
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+        startDate = new Date(now.setDate(diff));
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (filter === 'monthly') {
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      }
+
+      const startStr = startDate.toISOString().split('T')[0];
+      const endStr = endDate.toISOString().split('T')[0];
+
+      // Fetch entries
+      const { data: entries } = await db.from('task_entries')
+        .select(`
+          points_awarded,
+          daily_logs!inner (
+            log_date,
+            user_id,
+            profiles!inner (
+              full_name
+            )
+          )
+        `)
+        .eq('approved', true)
+        .gte('daily_logs.log_date', startStr)
+        .lte('daily_logs.log_date', endStr);
+
+      const scores = {};
+      (entries || []).forEach(e => {
+        const userId = e.daily_logs.user_id;
+        const name = e.daily_logs.profiles.full_name;
+        if (!scores[userId]) scores[userId] = { name, points: 0 };
+        scores[userId].points += e.points_awarded;
+      });
+
+      const leaderboard = Object.values(scores).sort((a, b) => b.points - a.points);
+      renderLeaderboard(leaderboard);
+    }
+
+    function renderLeaderboard(leaderboard) {
+      const tbody = document.getElementById('leaderboardBody');
+      const banner = document.getElementById('winnerBanner');
+      
+      tbody.innerHTML = '';
+      
+      if (leaderboard.length === 0) {
+        banner.style.display = 'none';
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 32px; color: var(--text-secondary);">No points awarded yet for this period.</td></tr>`;
+        return;
+      }
+
+      // Winner
+      const winner = leaderboard[0];
+      banner.style.display = 'block';
+      document.getElementById('winnerText').textContent = `Winner of the ${currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1)}!`;
+      document.getElementById('winnerSub').textContent = `${winner.name} — ${winner.points} points`;
+
+      leaderboard.forEach((student, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="color: var(--text-secondary); font-weight: 500;">#${idx + 1}</td>
+          <td style="font-weight: 600;">${student.name}</td>
+          <td style="text-align: right; font-weight: 600;">${student.points} pt</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

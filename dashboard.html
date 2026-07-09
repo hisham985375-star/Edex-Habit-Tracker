@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Dashboard - Edex Habit Tracker</title>
+  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+<body style="background-color: #ffffff;">
+  <!-- Background removed to display white background color -->
+  <div id="loader" class="loader" style="display: block;">Loading your diary...</div>
+
+  <div id="appContent" style="display: none; padding-top: 1rem;">
+    <div class="container" style="max-width: 1400px; padding: 0 1rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div style="width: 100%;">
+          <div class="dashboard-header-row">
+            <div class="logo-wrapper">
+              <picture>
+                <source media="(max-width: 768px)" srcset="mobile%20logo.png">
+                <img src="mobile%20logo.png" alt="Edex Life School" class="dashboard-logo pc-black-bg" style="border-radius: 8px; padding: 4px;">
+              </picture>
+            </div>
+            
+            <h1 class="dashboard-title-text hide-on-pc">Edex Habit Tracker</h1>
+
+            <div class="hide-on-mobile" style="display:flex; flex-direction:column; justify-content:center;">
+              <h1 class="dashboard-title-text" style="font-size:2.8rem; margin:0; line-height:1.2;">Edex Habit Tracker</h1>
+              <p class="dashboard-subtitle welcome-title-text" style="margin:0; font-size:1.2rem; white-space:nowrap; opacity:0.9;">Build Better Habits. Become Your Best Self.</p>
+            </div>
+          </div>
+          <p class="dashboard-subtitle hide-on-pc welcome-title-text">Build Better Habits. Become Your Best Self.</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+          <div style="background: #ceff00; color: #000; padding: 8px 16px; border-radius: 8px; display: flex; gap: 8px; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            <span style="font-size: 0.9rem; font-weight: 600;">Day</span>
+            <span id="currentDay" style="color: #000; font-size: 0.9rem;"></span>
+          </div>
+          <div style="background: #ceff00; color: #000; padding: 8px 16px; border-radius: 8px; display: flex; gap: 8px; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            <span style="font-size: 0.9rem; font-weight: 600;">Date</span>
+            <input type="text" id="datePicker" class="dashboard-date-input" style="background: transparent; color: #000; border: none; outline: none; width: 110px; font-size: 0.9rem; cursor: pointer; text-align: center;">
+          </div>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSdXcv6W2vqTIX3cEYRQ0Q33e6MUt8opZj3fb9ky6Fsna0EqdQ/viewform?pli=1" target="_blank" class="btn" style="background: #ceff00; color: #000; border-color: #ceff00; display: flex; align-items: center; gap: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            Submit Feedback
+          </a>
+          <a href="leaderboard.html" class="btn" style="background: #ceff00; color: #000; border-color: #ceff00;">Leaderboard</a>
+          <button class="btn logout-btn" style="background: #ceff00; color: #000; border-color: #ceff00;">Logout</button>
+        </div>
+      </div>
+
+      <div class="scroll-container">
+        <div class="sticky-scene masonry-grid" id="masonryTasks">
+          <!-- Tasks will be rendered here -->
+        </div>
+      </div>
+      
+      <div style="margin-top: 2rem; text-align: center; color: var(--text-secondary); padding-bottom: 2rem;">
+        <p id="pointsDisplay" style="font-weight: 600; font-size: 1.1rem; background: #fff; display: inline-block; padding: 12px 24px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">0 / 20 Points Awarded Today</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Camera Modal Overlay -->
+  <div id="cameraModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; flex-direction:column; align-items:center; justify-content:space-between; padding: 2rem 0;">
+    
+    <div style="width: 100%; display: flex; justify-content: space-between; padding: 0 20px;">
+      <span style="color:white; font-weight:600; font-size:1.2rem;">Photo Mode</span>
+      <button onclick="closeCamera()" style="background:transparent; border:none; color:white; font-size:1.5rem;">✕</button>
+    </div>
+
+    <div style="position: relative; width: 100%; max-height: 70vh; display: flex; justify-content: center; align-items: center; overflow: hidden; background: #111;">
+      <video id="cameraFeed" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video>
+      <div id="cameraFlash" style="position:absolute; top:0; left:0; width:100%; height:100%; background:white; opacity:0; pointer-events:none; transition: opacity 0.1s;"></div>
+    </div>
+    
+    <canvas id="cameraCanvas" style="display:none;"></canvas>
+    
+    <div style="margin-bottom: 2rem; display:flex; justify-content: center; align-items: center; width: 100%;">
+      <button onclick="capturePhoto()" style="width: 70px; height: 70px; border-radius: 50%; background: transparent; border: 4px solid white; display: flex; justify-content: center; align-items: center; padding: 0; cursor: pointer;">
+        <div style="width: 54px; height: 54px; border-radius: 50%; background: white;"></div>
+      </button>
+    </div>
+  </div>
+
+  <script src="supabaseClient.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    let currentUser = null;
+    let currentDailyLog = null;
+    let taskEntries = {};
+    let allTasks = [];
+    let currentCameraTaskId = null;
+    let mediaStream = null;
+
+    // Extreme paste prevention logic
+    document.addEventListener('paste', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
+
+    function enforceNoPaste(e) {
+      if (e.inputType && e.inputType.toLowerCase().includes('paste')) {
+        e.preventDefault();
+        return false;
+      }
+      // Block insertions larger than 12 characters (clipboard text usually)
+      if (e.data && e.data.length > 12) {
+        alert('Pasting from clipboard is strictly disabled.');
+        e.preventDefault();
+        return false;
+      }
+    }
+
+    function saveSleep(taskId) {
+      const hEl = document.getElementById('sleep_h_' + taskId);
+      const mEl = document.getElementById('sleep_m_' + taskId);
+      if(hEl && mEl) {
+        const h = parseInt(hEl.value, 10);
+        const m = parseInt(mEl.value, 10);
+        const val = h + m / 60;
+        handleSaveEntry(taskId, val.toString());
+      }
+    }
+
+    function adjustSleep(taskId, deltaMins) {
+      const hEl = document.getElementById('sleep_h_' + taskId);
+      const mEl = document.getElementById('sleep_m_' + taskId);
+      if(hEl && mEl) {
+        let h = parseInt(hEl.value, 10);
+        let m = parseInt(mEl.value, 10);
+        
+        let totalMins = (h * 60) + m + deltaMins;
+        if(totalMins < 0) totalMins = 0;
+        if(totalMins > 24 * 60) totalMins = 24 * 60;
+        
+        hEl.value = Math.floor(totalMins / 60);
+        mEl.value = totalMins % 60;
+        saveSleep(taskId);
+      }
+    }
+
+    function savePrayers(taskId, element) {
+      const checkboxes = element.closest('div').querySelectorAll('input[type="checkbox"]');
+      const checked = Array.from(checkboxes).filter(c => c.checked).map(c => c.value).join(',');
+      handleSaveEntry(taskId, checked);
+    }
+
+    async function saveEatSmartField(field, value) {
+      if (!currentDailyLog) return;
+      const updateData = {};
+      if (field === 'total_cals') {
+        updateData[field] = value ? parseFloat(value) : null;
+      } else {
+        updateData[field] = value;
+      }
+      await db.from('daily_logs').update(updateData).eq('id', currentDailyLog.id);
+      currentDailyLog[field] = value;
+    }
+
+    async function openCamera(taskId) {
+      currentCameraTaskId = taskId;
+      document.getElementById('cameraModal').style.display = 'flex';
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        document.getElementById('cameraFeed').srcObject = mediaStream;
+      } catch (err) {
+        alert('Could not access camera. Please ensure you have granted camera permissions.');
+        closeCamera();
+      }
+    }
+
+    function closeCamera() {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        mediaStream = null;
+      }
+      document.getElementById('cameraModal').style.display = 'none';
+      document.getElementById('cameraFeed').srcObject = null;
+      currentCameraTaskId = null;
+    }
+
+    async function handleNativeCamera(event, taskId) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      document.getElementById('loader').style.display = 'flex';
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = async function() {
+          const canvas = document.createElement('canvas');
+          const MAX_SIZE = 800;
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > height) {
+            if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+          } else {
+            if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          await handleSaveEntry(taskId, dataUrl);
+          
+          document.getElementById('loader').style.display = 'none';
+          renderTasks();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function capturePhoto() {
+      if (!mediaStream) return;
+      
+      // Flash effect
+      const flash = document.getElementById('cameraFlash');
+      flash.style.opacity = '1';
+      setTimeout(() => { flash.style.opacity = '0'; }, 150);
+
+      const video = document.getElementById('cameraFeed');
+      const canvas = document.getElementById('cameraCanvas');
+      
+      const MAX_SIZE = 800;
+      let width = video.videoWidth;
+      let height = video.videoHeight;
+      
+      if (width > height) {
+        if (width > MAX_SIZE) {
+          height *= MAX_SIZE / width;
+          width = MAX_SIZE;
+        }
+      } else {
+        if (height > MAX_SIZE) {
+          width *= MAX_SIZE / height;
+          height = MAX_SIZE;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, width, height);
+      
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      
+      // Save and close after short delay for flash to be seen
+      setTimeout(async () => {
+        await handleSaveEntry(currentCameraTaskId, dataUrl);
+        renderTasks();
+        closeCamera();
+      }, 200);
+    }
+
+    async function init() {
+      const authData = await requireAuth('student');
+      if (!authData) return;
+
+      currentUser = authData.user;
+      const name = authData.profile.full_name || '';
+      const welcomeHtml = `Welcome <strong>${name.toUpperCase()}</strong>`;
+      document.querySelectorAll('.welcome-title-text').forEach(el => el.innerHTML = welcomeHtml);
+      
+      const now = new Date();
+      // Adjust to local timezone date string (YYYY-MM-DD)
+      const offset = now.getTimezoneOffset() * 60000;
+      const localISOTime = (new Date(now - offset)).toISOString().split('T')[0];
+      
+      const datePicker = document.getElementById('datePicker');
+      datePicker.max = localISOTime;
+      datePicker.value = localISOTime;
+      
+      updateDayDisplay(localISOTime);
+
+      flatpickr(datePicker, {
+        disableMobile: true,
+        defaultDate: localISOTime,
+        maxDate: localISOTime,
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d M Y",
+        onChange: async function(selectedDates, dateStr, instance) {
+          if (!dateStr) return;
+          updateDayDisplay(dateStr);
+          document.getElementById('appContent').style.opacity = '0.5';
+          await loadData(dateStr);
+          renderTasks();
+          document.getElementById('appContent').style.opacity = '1';
+        }
+      });
+
+      await loadData(localISOTime);
+      renderTasks();
+
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('appContent').style.display = 'block';
+    }
+
+    function updateDayDisplay(dateString) {
+      // Parse as local date to get correct day name
+      const d = new Date(dateString + 'T00:00:00');
+      document.getElementById('currentDay').textContent = d.toLocaleDateString('en-US', { weekday: 'long' });
+    }
+
+    async function loadData(targetDate) {
+      if (allTasks.length === 0) {
+        // Fetch tasks (They are sorted by sort_order which matches the prompt order)
+        const { data: tasks } = await db.from('tasks').select('*').order('sort_order', { ascending: true });
+        allTasks = tasks || [];
+      }
+
+      let { data: dailyLog } = await db.from('daily_logs')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .eq('log_date', targetDate)
+        .single();
+
+      if (!dailyLog) {
+        const { data: newLog } = await db.from('daily_logs')
+          .insert({ user_id: currentUser.id, log_date: targetDate })
+          .select().single();
+        dailyLog = newLog;
+      }
+      currentDailyLog = dailyLog;
+
+      // Clear current entries
+      taskEntries = {};
+
+      // Fetch task entries
+      const { data: entries } = await db.from('task_entries')
+        .select('*')
+        .eq('daily_log_id', dailyLog.id);
+      
+      (entries || []).forEach(e => {
+        taskEntries[e.task_id] = e;
+      });
+      
+      updatePointsDisplay();
+    }
+
+    function updatePointsDisplay() {
+      const total = Object.values(taskEntries)
+        .filter(e => e.approved)
+        .reduce((sum, e) => sum + e.points_awarded, 0);
+      document.getElementById('pointsDisplay').textContent = `${total} / 20 Points Awarded Today`;
+    }
+
+    async function handleSaveEntry(taskId, content) {
+      // Allow saving empty content so cleared inputs are persisted
+      const existing = taskEntries[taskId];
+      const now = new Date().toISOString();
+
+      if (existing) {
+        await db.from('task_entries')
+          .update({ content, submitted_at: now })
+          .eq('id', existing.id);
+        
+        taskEntries[taskId].content = content;
+      } else {
+        const { data } = await db.from('task_entries')
+          .insert({
+            daily_log_id: currentDailyLog.id,
+            task_id: taskId,
+            content,
+            submitted_at: now
+          }).select().single();
+        
+        if (data) taskEntries[taskId] = data;
+      }
+    }
+
+    async function handleDeletePhoto(taskId) {
+      if (confirm('Are you sure you want to delete this photo?')) {
+        await handleSaveEntry(taskId, '');
+        renderTasks();
+      }
+    }
+
+    async function handleSaveDailyLog(field, value) {
+      if (Number.isNaN(value) || value === '') {
+        value = null;
+      }
+      currentDailyLog[field] = value;
+      await db.from('daily_logs').update({ [field]: value }).eq('id', currentDailyLog.id);
+    }
+
+    function getTaskStyle(title) {
+      const styles = {
+        'Sleep': { icon: '🌙', color: '#a855f7' },
+        'Fit & Strong': { icon: '💓', color: '#ec4899' },
+        'Weight': { icon: '⚖️', color: '#64748b' },
+        'Eat Smart': { icon: '🍽️', color: '#10b981' },
+        'Master the Mic': { icon: '🎤', color: '#8b5cf6' },
+        'Mind Gym': { icon: '🧠', color: '#f43f5e' },
+        'Real-World Problems': { icon: '🌐', color: '#3b82f6' },
+        'World Watch': { icon: '📺', color: '#6366f1' },
+        'Smart Tools Mastery': { icon: '💻', color: '#3b82f6' },
+        'Power Circles': { icon: '👥', color: '#22c55e' },
+        'Brain Boost': { icon: '🧠', color: '#f43f5e' },
+        'Level Up Look': { icon: '👕', color: '#3b82f6' },
+        'Build Your Brand': { icon: '⭐', color: '#f59e0b' },
+        'Life Hacks Lab': { icon: '🧪', color: '#0ea5e9' },
+        'Do & Learn': { icon: '📖', color: '#a855f7' },
+        'Growth Fuel': { icon: '🌱', color: '#22c55e' },
+        'Talk Like a Pro': { icon: '💬', color: '#8b5cf6' },
+        'Impact Hour': { icon: '🎯', color: '#f43f5e' },
+        'Startup Garage': { icon: '🚀', color: '#6366f1' },
+        'Prayer / Meditation': { icon: '📋', color: '#64748b' },
+        'Checklist': { icon: '📋', color: '#64748b' }
+      };
+      return styles[title] || { icon: '📌', color: '#cbd5e1' };
+    }
+
+    function generateCardHTML(task, index) {
+      const existing = taskEntries[task.id];
+      const content = existing ? existing.content : '';
+      const style = getTaskStyle(task.title);
+      
+      let mentorNoteHtml = '';
+      if (existing && existing.mentor_note) {
+        mentorNoteHtml = `
+          <div style="margin-top: 12px; padding: 12px; background: rgba(168,85,247,0.1); border-left: 3px solid #a855f7; border-radius: 0 4px 4px 0;">
+            <p style="margin:0; font-size: 0.8rem; font-weight: 600; color: #9333ea; margin-bottom:4px;">Mentor Note:</p>
+            <p style="margin:0; font-size: 0.85rem; color: #4b5563;">${existing.mentor_note}</p>
+          </div>
+        `;
+      }
+
+      let inputHtml = '';
+      if (task.title === 'Sleep') {
+        let val = parseFloat(content) || 0;
+        let h = Math.floor(val);
+        let m = Math.round((val - h) * 60);
+        
+        let hOptions = '';
+        for(let i=0; i<=24; i++) {
+            hOptions += `<option value="${i}" ${i === h ? 'selected' : ''}>${i.toString().padStart(2, '0')}</option>`;
+        }
+        let mOptions = '';
+        for(let i=0; i<=59; i++) {
+            mOptions += `<option value="${i}" ${i === m ? 'selected' : ''}>${i.toString().padStart(2, '0')}</option>`;
+        }
+
+        inputHtml = `
+            <div style="display:flex; align-items:center; justify-content:center; gap: 12px; margin-top: 16px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px;">
+              <div style="display:flex; align-items:baseline; gap:4px; padding: 0 10px;">
+                <select id="sleep_h_${task.id}" onchange="saveSleep('${task.id}')" style="appearance:none; -webkit-appearance:none; background:transparent; border:none; font-size:2.5rem; font-weight:700; color:inherit; text-align:center; cursor:pointer; outline:none; padding:0;">
+                  ${hOptions}
+                </select>
+                <span style="font-size:1.2rem; opacity:0.7; font-weight:600;">h</span>
+                <span style="font-size:2.5rem; font-weight:700; margin:0 2px; opacity:0.5;">:</span>
+                <select id="sleep_m_${task.id}" onchange="saveSleep('${task.id}')" style="appearance:none; -webkit-appearance:none; background:transparent; border:none; font-size:2.5rem; font-weight:700; color:inherit; text-align:center; cursor:pointer; outline:none; padding:0;">
+                  ${mOptions}
+                </select>
+                <span style="font-size:1.2rem; opacity:0.7; font-weight:600;">m</span>
+              </div>
+            </div>
+        `;
+      } else if (task.title === 'Prayer / Meditation') {
+         const checkedItems = content ? content.split(',') : [];
+         const isChecked = (val) => checkedItems.includes(val) ? 'checked' : '';
+         
+         inputHtml = `
+            <div style="display:flex; flex-direction:column; gap: 10px; margin-top: 12px;">
+              <label style="display:flex; align-items:center; gap: 12px; font-weight:500; font-size:1.15rem; cursor:pointer; color: inherit; margin:0; background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <input type="checkbox" style="transform: scale(1.3); margin-right: 4px; accent-color: #22c55e;" value="Fajr" ${isChecked('Fajr')} onchange="savePrayers('${task.id}', this)"> Fajr
+              </label>
+              <label style="display:flex; align-items:center; gap: 12px; font-weight:500; font-size:1.15rem; cursor:pointer; color: inherit; margin:0; background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <input type="checkbox" style="transform: scale(1.3); margin-right: 4px; accent-color: #22c55e;" value="Dhuhr" ${isChecked('Dhuhr')} onchange="savePrayers('${task.id}', this)"> Dhuhr
+              </label>
+              <label style="display:flex; align-items:center; gap: 12px; font-weight:500; font-size:1.15rem; cursor:pointer; color: inherit; margin:0; background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <input type="checkbox" style="transform: scale(1.3); margin-right: 4px; accent-color: #22c55e;" value="Asr" ${isChecked('Asr')} onchange="savePrayers('${task.id}', this)"> Asr
+              </label>
+              <label style="display:flex; align-items:center; gap: 12px; font-weight:500; font-size:1.15rem; cursor:pointer; color: inherit; margin:0; background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <input type="checkbox" style="transform: scale(1.3); margin-right: 4px; accent-color: #22c55e;" value="Maghrib" ${isChecked('Maghrib')} onchange="savePrayers('${task.id}', this)"> Maghrib
+              </label>
+              <label style="display:flex; align-items:center; gap: 12px; font-weight:500; font-size:1.15rem; cursor:pointer; color: inherit; margin:0; background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <input type="checkbox" style="transform: scale(1.3); margin-right: 4px; accent-color: #22c55e;" value="Isha" ${isChecked('Isha')} onchange="savePrayers('${task.id}', this)"> Isha
+              </label>
+              <label style="display:flex; align-items:center; gap: 12px; font-weight:500; font-size:1.15rem; cursor:pointer; color: inherit; margin:0; background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <input type="checkbox" style="transform: scale(1.3); margin-right: 4px; accent-color: #22c55e;" value="Yoga or meditation" ${isChecked('Yoga or meditation')} onchange="savePrayers('${task.id}', this)"> Yoga or meditation
+              </label>
+            </div>
+         `;
+      } else if (task.title === 'Eat Smart') {
+        const b = currentDailyLog && currentDailyLog.eat_smart_breakfast ? currentDailyLog.eat_smart_breakfast : '';
+        const l = currentDailyLog && currentDailyLog.eat_smart_lunch ? currentDailyLog.eat_smart_lunch : '';
+        const t = currentDailyLog && currentDailyLog.eat_smart_tea ? currentDailyLog.eat_smart_tea : '';
+        const d = currentDailyLog && currentDailyLog.eat_smart_dinner ? currentDailyLog.eat_smart_dinner : '';
+        const cals = currentDailyLog && currentDailyLog.total_cals ? currentDailyLog.total_cals : '';
+
+        inputHtml = `
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+              <div style="display:flex; justify-content: flex-end; margin-bottom: 4px;">
+                <div style="display:flex; align-items:center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 50px; padding: 6px 14px; max-width: max-content;">
+                  <span style="font-size: 0.85rem; margin-right: 8px; opacity: 0.9; white-space:nowrap; font-weight: 500;">Total Cals</span>
+                  <input type="number" placeholder="0" value="${cals}" onblur="saveEatSmartField('total_cals', this.value)" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)" style="width: 70px; background: transparent; border: none; color: inherit; outline: none; font-weight: bold; text-align: right; font-size: 1rem; padding: 0;">
+                </div>
+              </div>
+              
+              <input type="text" class="planner-input" placeholder="Breakfast" value="${b}" onblur="saveEatSmartField('eat_smart_breakfast', this.value)" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)">
+              <input type="text" class="planner-input" placeholder="Lunch" value="${l}" onblur="saveEatSmartField('eat_smart_lunch', this.value)" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)">
+              <input type="text" class="planner-input" placeholder="Tea & Snacks" value="${t}" onblur="saveEatSmartField('eat_smart_tea', this.value)" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)">
+              <input type="text" class="planner-input" placeholder="Dinner" value="${d}" onblur="saveEatSmartField('eat_smart_dinner', this.value)" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)">
+            </div>
+        `;
+      } else if (task.title === 'Weight') {
+        inputHtml = `
+            <div style="display:flex; align-items:center; justify-content:center; margin-top: 16px;">
+              <div style="display:flex; align-items:baseline; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <input type="text" inputmode="decimal" value="${content}" onblur="handleSaveEntry('${task.id}', this.value)" placeholder="0.0" autocomplete="off" enterkeyhint="done" onkeydown="if(event.key === 'Enter' || event.keyCode === 13) { this.blur(); const btn = this.closest('.card').querySelector('.mobile-close-btn'); if(btn) btn.click(); }" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)" style="font-size: 2.5rem; font-weight: 700; width: 100px; text-align: center; border: none; background: transparent; color: inherit; outline: none; padding: 0;">
+                <span style="font-size: 1.25rem; font-weight: 600; opacity: 0.8; margin-left: 4px;">Kg</span>
+              </div>
+            </div>
+        `;
+      } else if (task.title === 'Fit & Strong') {
+        const hasPhoto = content && content.startsWith('data:image/');
+        
+        if (hasPhoto) {
+          inputHtml = `
+            <div style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">
+              <div style="position:relative; width:100%;">
+                <img src="${content}" style="width:100%; border-radius:8px; max-height:200px; object-fit:cover; border:1px solid rgba(255,255,255,0.2);">
+                <button onclick="handleDeletePhoto('${task.id}')" style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer;" title="Delete Photo">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </button>
+              </div>
+              
+              <div class="hide-on-pc" style="display:flex; gap:8px;">
+                <input type="file" accept="image/*" capture="environment" id="nativeCam_${task.id}" style="display:none;" onchange="handleNativeCamera(event, '${task.id}')">
+                <label for="nativeCam_${task.id}" class="btn btn-action" style="flex:1; background:transparent; border:1px solid currentColor; padding:8px; font-size:0.9rem; text-align:center; cursor:pointer; margin:0; display:flex; justify-content:center; align-items:center;">
+                  Retake Live Photo
+                </label>
+              </div>
+
+              <div class="hide-on-mobile" style="text-align:center; padding:10px; background:rgba(255,255,255,0.05); border-radius:8px; margin-top:4px;">
+                <p style="margin:0; font-size:0.85rem; opacity:0.8;">📸 Photo upload function only available from your mobile device</p>
+              </div>
+            </div>
+          `;
+        } else {
+          inputHtml = `
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+              <div class="hide-on-pc" style="display:flex; flex-direction:column; gap:8px;">
+                <input type="file" accept="image/*" capture="environment" id="nativeCam_${task.id}" style="display:none;" onchange="handleNativeCamera(event, '${task.id}')">
+                <label for="nativeCam_${task.id}" class="btn btn-action" style="background:currentColor; border:none; padding:10px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; margin:0;">
+                  <svg style="color:var(--bg-color, white);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                  <span style="color:var(--bg-color, white);">Take Live Photo</span>
+                </label>
+                <p style="margin:0; font-size:0.8rem; color:inherit; opacity: 0.8; text-align:center;">Requires Live Camera Photo</p>
+              </div>
+
+              <div class="hide-on-mobile" style="text-align:center; padding:20px; background:rgba(255,255,255,0.05); border-radius:8px;">
+                <p style="margin:0; font-size:0.9rem; opacity:0.8;">📸 Photo upload function only available from your mobile device</p>
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        let placeholderText = "Write your plan...";
+        const customPlaceholders = {
+          'Master the Mic': 'Write a Story',
+          'Mind Gym': 'Write what you learn on physiology session',
+          'World Watch': 'What you understood from the news',
+          'Smart Tools Mastery': 'Write a smart tool',
+          'Brain Boost': 'What math did u solve today',
+          'Startup Garage': 'What is your bussiness improvement',
+          'Real-World Problems': 'Write about your case study',
+          'Power Circles': 'Who is the person you connect today',
+          'Level Up Look': 'What is the dress you plan to wear tomorrow',
+          'Talk Like a Pro': 'What did you learn From the communication session',
+          'Build Your Brand': 'Updates On your personal Branding',
+          'Impact Hour': 'What help did you done today',
+          'Life Hacks Lab': 'What did u Self learned Today',
+          'Growth Fuel': 'Reading / podcast'
+        };
+        
+        if (customPlaceholders[task.title]) {
+          placeholderText = customPlaceholders[task.title];
+        }
+
+        inputHtml = `
+            <textarea class="planner-textarea" placeholder="${placeholderText}" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'" onblur="handleSaveEntry('${task.id}', this.value)" autocomplete="off" autocorrect="off" spellcheck="false" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)">${content}</textarea>
+        `;
+      }
+
+      let subLabel = '';
+      if (task.title === 'Smart Tools Mastery') subLabel = '<span class="sub-label">(Mention the use)</span>';
+      if (task.title === 'Power Circles') subLabel = '<span class="sub-label">(Name & Designation)</span>';
+      if (task.title === 'Sleep') subLabel = '<span class="sub-label">(Hour)</span>';
+
+      const themes = ['black', 'red', 'white'];
+      const theme = themes[index % 3];
+
+      return `
+        <div class="card card-theme-${theme}" data-index="${index}" style="--card-color: ${style.color};" onclick="toggleCardZoom(this, event)">
+          <button class="mobile-close-btn" onclick="closeCardZoom(this, event)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          <div class="card-header">
+            <span class="card-icon">${style.icon}</span>
+            <div class="card-title-wrap">
+              <span class="card-number">0${index + 1}</span>
+              <h3 class="card-title-text">${task.title}${subLabel}</h3>
+            </div>
+          </div>
+          <div class="card-body">
+            ${inputHtml}
+          </div>
+          ${mentorNoteHtml}
+        </div>
+      `;
+    }
+
+    function toggleCardZoom(cardEl, event) {
+      if (window.innerWidth <= 768 && !cardEl.classList.contains('zoomed-in')) {
+        cardEl.classList.add('zoomed-in');
+        document.body.classList.add('no-scroll');
+        
+        // Add swipe down to close
+        let startY = 0;
+        let currentY = 0;
+        cardEl.ontouchstart = (e) => {
+          startY = e.touches[0].clientY;
+        };
+        cardEl.ontouchmove = (e) => {
+          currentY = e.touches[0].clientY;
+        };
+        cardEl.ontouchend = (e) => {
+          if (currentY - startY > 60 && cardEl.scrollTop <= 0) {
+            closeCardZoom(cardEl, e);
+          }
+        };
+      }
+    }
+
+    function closeCardZoom(btnEl, event) {
+      if (event && event.stopPropagation) event.stopPropagation();
+      const cardEl = btnEl.classList && btnEl.classList.contains('card') ? btnEl : btnEl.closest('.card');
+      if (cardEl) {
+        cardEl.classList.remove('zoomed-in');
+        document.body.classList.remove('no-scroll');
+        cardEl.ontouchstart = null;
+        cardEl.ontouchmove = null;
+        cardEl.ontouchend = null;
+      }
+    }
+
+    function renderTasks() {
+      const container = document.getElementById('masonryTasks');
+      container.innerHTML = '';
+      
+      allTasks.forEach((task, index) => {
+        container.innerHTML += generateCardHTML(task, index);
+      });
+
+      // Auto-resize textareas to fit content on load
+      setTimeout(() => {
+        document.querySelectorAll('.planner-textarea').forEach(tx => {
+          tx.style.height = 'auto';
+          tx.style.height = tx.scrollHeight + 'px';
+        });
+        init3DScroll();
+      }, 0);
+    }
+
+
+    function init3DScroll() {
+      if (window.innerWidth > 768) return;
+      
+      const scrollContainer = document.querySelector('.scroll-container');
+      const scene = document.querySelector('.sticky-scene');
+      const cards = Array.from(document.querySelectorAll('.card'));
+      if (!scrollContainer || cards.length === 0) return;
+
+      // Remove native scroll configurations and use standard block layout
+      scrollContainer.style.height = '85vh';
+      scrollContainer.style.overflowX = 'hidden';
+      scrollContainer.style.overflowY = 'hidden';
+      scrollContainer.style.display = 'block';
+      scrollContainer.classList.remove('hide-scrollbar');
+      
+      scene.style.position = 'relative';
+      scene.style.width = '100%';
+      scene.style.height = '100%';
+      
+      // Clean up any old spacers
+      scrollContainer.querySelectorAll('.spacer').forEach(el => el.remove());
+
+      let currentIndex = 0;
+      
+      function updateCards() {
+        cards.forEach((card, index) => {
+          if (card.classList.contains('zoomed-in')) {
+            card.style.transform = 'none';
+            card.style.opacity = '1';
+            return;
+          }
+
+          let progress = index - currentIndex; 
+          
+          // Smooth, slow, deliberate animation (0.8 seconds)
+          card.style.transition = 'transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s ease';
+          
+          let translateX = 0;
+          let translateZ = 0;
+          let rotateY = 0;
+          let opacity = 1;
+          
+          if (progress === 0) {
+             // Center active card
+             translateX = 0;
+             translateZ = 0;
+             rotateY = 0;
+             opacity = 1;
+             card.style.pointerEvents = 'auto';
+          } else if (progress > 0) {
+             // Cards waiting on the right
+             translateX = progress * 85; 
+             translateZ = progress * -150; 
+             rotateY = -15; // Tilt left
+             opacity = 1 - progress * 0.2;
+             card.style.pointerEvents = 'auto'; 
+          } else if (progress < 0) {
+             // Cards passed to the left (pushed backward)
+             translateX = progress * 30; // Move slightly left
+             translateZ = Math.abs(progress) * -300; // Push deep backward
+             rotateY = 15; // Tilt right
+             opacity = 1 - Math.abs(progress) * 0.4;
+             card.style.pointerEvents = 'none'; // Cannot click cards passed to left
+          }
+
+          if (opacity <= 0) {
+             opacity = 0;
+             card.style.visibility = 'hidden';
+          } else {
+             card.style.visibility = 'visible';
+          }
+          
+          card.style.opacity = opacity;
+          card.style.zIndex = 100 - Math.abs(progress);
+          
+          // Use parent's perspective context to prevent deep Z-clipping bugs
+          card.style.transform = `translateX(${translateX}%) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
+        });
+      }
+
+      // Swipe functionality
+      let startX = 0;
+      let startY = 0;
+      let isSwiping = false;
+
+      scrollContainer.addEventListener('touchstart', (e) => {
+         if (document.querySelector('.card.zoomed-in')) return;
+         startX = e.touches[0].clientX;
+         startY = e.touches[0].clientY;
+         isSwiping = true;
+      }, {passive: true});
+
+      scrollContainer.addEventListener('touchmove', (e) => {
+         if (!isSwiping || document.querySelector('.card.zoomed-in')) return;
+         let currentX = e.touches[0].clientX;
+         let currentY = e.touches[0].clientY;
+         // If moving more vertically than horizontally, let it scroll the page naturally
+         if (Math.abs(currentY - startY) > Math.abs(currentX - startX)) {
+            isSwiping = false; 
+         }
+      }, {passive: true});
+
+      scrollContainer.addEventListener('touchend', (e) => {
+         if (!isSwiping || document.querySelector('.card.zoomed-in')) return;
+         let endX = e.changedTouches[0].clientX;
+         let diffX = startX - endX;
+
+         // If swipe distance is significant
+         if (diffX > 40) {
+            // Swiped left, go to next card
+            if (currentIndex < cards.length - 1) {
+               currentIndex++;
+               updateCards();
+            }
+         } else if (diffX < -40) {
+            // Swiped right, go to previous card
+            if (currentIndex > 0) {
+               currentIndex--;
+               updateCards();
+            }
+         }
+         isSwiping = false;
+      });
+
+      cards.forEach((card, index) => {
+        card.removeAttribute('onclick');
+        card.addEventListener('click', (e) => {
+           if (e.target.closest('.mobile-close-btn')) return;
+
+           if (currentIndex === index) {
+              toggleCardZoom(card, e);
+           } else {
+              currentIndex = index;
+              updateCards();
+           }
+        });
+      });
+
+      updateCards();
+    }
+
+    init();
+  </script>
+</body>
+</html>
