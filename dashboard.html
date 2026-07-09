@@ -152,7 +152,7 @@
       handleSaveEntry(taskId, checked);
     }
 
-    async function saveEatSmartField(field, value) {
+    async function saveEatSmartField(field, value, taskId) {
       if (!currentDailyLog) return;
       const updateData = {};
       if (field === 'total_cals') {
@@ -162,6 +162,10 @@
       }
       await db.from('daily_logs').update(updateData).eq('id', currentDailyLog.id);
       currentDailyLog[field] = value;
+      
+      if (taskId) {
+        handleSaveEntry(taskId, 'Logged details in Daily Logs');
+      }
     }
 
     async function openCamera(taskId) {
@@ -507,14 +511,14 @@
               <div style="display:flex; justify-content: flex-end; margin-bottom: 4px;">
                 <div style="display:flex; align-items:center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 50px; padding: 6px 14px; max-width: max-content;">
                   <span style="font-size: 0.85rem; margin-right: 8px; opacity: 0.9; white-space:nowrap; font-weight: 500;">Total Cals</span>
-                  <input type="number" placeholder="0" value="${cals}" onblur="saveEatSmartField('total_cals', this.value)" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)" style="width: 70px; background: transparent; border: none; color: inherit; outline: none; font-weight: bold; text-align: right; font-size: 1rem; padding: 0;">
+                  <input type="number" placeholder="0" value="${cals}" onblur="saveEatSmartField('total_cals', this.value, '${task.id}')" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)" style="width: 70px; background: transparent; border: none; color: inherit; outline: none; font-weight: bold; text-align: right; font-size: 1rem; padding: 0;">
                 </div>
               </div>
               
-              <input type="text" class="planner-input" placeholder="Breakfast" value="${b}" onblur="saveEatSmartField('eat_smart_breakfast', this.value)" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)">
-              <input type="text" class="planner-input" placeholder="Lunch" value="${l}" onblur="saveEatSmartField('eat_smart_lunch', this.value)" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)">
-              <input type="text" class="planner-input" placeholder="Tea & Snacks" value="${t}" onblur="saveEatSmartField('eat_smart_tea', this.value)" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)">
-              <input type="text" class="planner-input" placeholder="Dinner" value="${d}" onblur="saveEatSmartField('eat_smart_dinner', this.value)" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)">
+              <input type="text" class="planner-input" placeholder="Breakfast" value="${b}" onblur="saveEatSmartField('eat_smart_breakfast', this.value, '${task.id}')" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)">
+              <input type="text" class="planner-input" placeholder="Lunch" value="${l}" onblur="saveEatSmartField('eat_smart_lunch', this.value, '${task.id}')" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)">
+              <input type="text" class="planner-input" placeholder="Tea & Snacks" value="${t}" onblur="saveEatSmartField('eat_smart_tea', this.value, '${task.id}')" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)">
+              <input type="text" class="planner-input" placeholder="Dinner" value="${d}" onblur="saveEatSmartField('eat_smart_dinner', this.value, '${task.id}')" autocomplete="off" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)">
             </div>
         `;
       } else if (task.title === 'Weight') {
