@@ -344,9 +344,14 @@
       taskEntries = {};
 
       // Fetch task entries
-      const { data: entries } = await db.from('task_entries')
-        .select('*')
+      const { data: entries, error } = await db.from('task_entries')
+        .select('*, profiles(full_name)')
         .eq('daily_log_id', dailyLog.id);
+        
+      if (error) {
+        console.error("Error fetching task entries:", error);
+        alert("Failed to load your diary properly. Please contact support. " + error.message);
+      }
       
       (entries || []).forEach(e => {
         taskEntries[e.task_id] = e;
@@ -434,13 +439,28 @@
       const style = getTaskStyle(task.title);
       
       let mentorNoteHtml = '';
-      if (existing && existing.mentor_note) {
-        mentorNoteHtml = `
-          <div style="margin-top: 12px; padding: 12px; background: rgba(168,85,247,0.1); border-left: 3px solid #a855f7; border-radius: 0 4px 4px 0;">
-            <p style="margin:0; font-size: 0.8rem; font-weight: 600; color: #9333ea; margin-bottom:4px;">Mentor Note:</p>
+      if (existing && (existing.mentor_note || existing.approved)) {
+        let mentorName = existing.profiles && existing.profiles.full_name ? existing.profiles.full_name : 'Mentor';
+        let reviewContent = '';
+        
+        if (existing.approved) {
+          reviewContent += `<div style="display:inline-flex; align-items:center; gap:4px; background: #10b981; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg> Approved by ${mentorName}</div><br>`;
+        }
+        
+        if (existing.mentor_note) {
+          reviewContent += `
+            <p style="margin:0; font-size: 0.8rem; font-weight: 600; color: #9333ea; margin-bottom:4px;">Note from ${mentorName}:</p>
             <p style="margin:0; font-size: 0.85rem; color: #4b5563;">${existing.mentor_note}</p>
-          </div>
-        `;
+          `;
+        }
+
+        if (reviewContent) {
+          mentorNoteHtml = `
+            <div style="margin-top: 12px; padding: 12px; background: rgba(168,85,247,0.1); border-left: 3px solid #a855f7; border-radius: 0 4px 4px 0;">
+              ${reviewContent}
+            </div>
+          `;
+        }
       }
 
       let inputHtml = '';

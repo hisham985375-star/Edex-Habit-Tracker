@@ -152,9 +152,13 @@
       }
       dailyLog = log;
 
-      const { data: entries } = await db.from('task_entries')
-        .select('*')
+      const { data: entries, error } = await db.from('task_entries')
+        .select('*, profiles(full_name)')
         .eq('daily_log_id', dailyLog.id);
+        
+      if (error) {
+        console.error("Error loading entries:", error);
+      }
       
       (entries || []).forEach(e => {
         taskEntries[e.task_id] = e;
@@ -170,7 +174,8 @@
 
       const { error } = await db.from('task_entries').update({
         approved: newStatus,
-        points_awarded: points
+        points_awarded: points,
+        approved_by: mentor.id
       }).eq('id', entryId);
 
       if (error) {
@@ -194,7 +199,8 @@
       }
 
       const { error } = await db.from('task_entries').update({
-        mentor_note: note || null
+        mentor_note: note || null,
+        approved_by: mentor.id
       }).eq('id', entryId);
       
       if (error) {
@@ -273,14 +279,25 @@
                   <svg style="margin-right: 6px; width:18px; height:18px; vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                   ${isApproved ? 'Approved' : 'Approve Task (+1 Pt)'}
                 </button>
+                ${isApproved && entry.profiles ? `<div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px; text-align: right;">by ${entry.profiles.full_name}</div>` : ''}
               </div>
             </div>
           `;
 
           let extraLogInfo = '';
-          if (task.title === 'Sleep' && dailyLog.sleep_hours) extraLogInfo = ` (Recorded: ${dailyLog.sleep_hours} hrs)`;
-          if (task.title === 'Weight' && dailyLog.weight) extraLogInfo = ` (Recorded: ${dailyLog.weight} kg)`;
-          if (task.title === 'Eat Smart') {
+          const taskTitleClean = (task.title || '').trim().toLowerCase();
+          if (taskTitleClean === 'sleep' && dailyLog.sleep_hours) {
+            const val = parseFloat(dailyLog.sleep_hours);
+            if (!isNaN(val)) {
+              const h = Math.floor(val);
+              const m = Math.round((val - h) * 60);
+              extraLogInfo = ` (Recorded: ${h}h ${m}m)`;
+            } else {
+              extraLogInfo = ` (Recorded: ${dailyLog.sleep_hours} hrs)`;
+            }
+          }
+          if (taskTitleClean === 'weight' && dailyLog.weight) extraLogInfo = ` (Recorded: ${dailyLog.weight} kg)`;
+          if (taskTitleClean === 'eat smart') {
             extraLogInfo = `
               <ul style="font-size:0.875rem; margin-top:8px; padding-left:16px;">
                 <li>Breakfast: ${dailyLog.eat_smart_breakfast || '-'}</li>
@@ -300,9 +317,22 @@
               </div>
             `;
           } else {
+            let displayContent = entry.content;
+            if (taskTitleClean === 'sleep') {
+              const val = parseFloat(entry.content);
+              if (!isNaN(val)) {
+                const h = Math.floor(val);
+                const m = Math.round((val - h) * 60);
+                let parts = [];
+                if (h > 0) parts.push(`${h} hour${h > 1 ? 's' : ''}`);
+                if (m > 0) parts.push(`${m} minute${m > 1 ? 's' : ''}`);
+                if (parts.length === 0) parts.push('0 minutes');
+                displayContent = parts.join(' ');
+              }
+            }
             contentHtml = `
               <div style="background: #fafafa; border: 1px solid #f3f4f6; padding: 18px; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.6;">
-                <p style="color: #374151; margin: 0; white-space: pre-wrap;">${entry.content}${extraLogInfo}</p>
+                <p style="color: #374151; margin: 0; white-space: pre-wrap;">${displayContent}${extraLogInfo}</p>
               </div>
             `;
           }
