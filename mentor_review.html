@@ -50,6 +50,161 @@
       }
       body { padding: 1rem !important; overflow-y: auto !important; }
     }
+
+    /* Redesigned Task Card Styles - Neon Dark Theme */
+    .mentor-task-card {
+      background: #111111 !important;
+      border: 1px solid rgba(255, 255, 255, 0.05) !important;
+      border-left: 6px solid #ceff00 !important;
+      border-radius: 16px !important;
+      padding: 2rem !important;
+      margin-bottom: 2rem !important;
+      color: #ffffff !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+      position: relative;
+    }
+
+    .mentor-task-card h3 {
+      color: #ffffff !important;
+    }
+
+    .task-number-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #ceff00 !important;
+      color: #111111 !important;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .approved-badge-ref {
+      border: 1px solid #ceff00 !important;
+      color: #ceff00 !important;
+      background: rgba(206, 255, 0, 0.05) !important;
+      padding: 8px 16px !important;
+      border-radius: 8px !important;
+      font-size: 0.9rem !important;
+      font-weight: 600 !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      outline: none;
+    }
+    .approved-badge-ref:hover {
+      background: rgba(206, 255, 0, 0.15) !important;
+      box-shadow: 0 0 12px rgba(206, 255, 0, 0.15);
+    }
+
+    .pending-btn-ref {
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      color: #ffffff !important;
+      background: transparent !important;
+      padding: 8px 16px !important;
+      border-radius: 8px !important;
+      font-size: 0.9rem !important;
+      font-weight: 600 !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      outline: none;
+    }
+    .pending-btn-ref:hover {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border-color: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    .task-section-title {
+      color: #ceff00 !important;
+      font-size: 0.85rem !important;
+      font-weight: 700 !important;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+      margin-top: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .task-section-title::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: #ceff00;
+      border-radius: 50%;
+    }
+
+    .submission-content-box {
+      background: #181818 !important;
+      border: 1px solid #282828 !important;
+      border-left: 3px solid #ceff00 !important;
+      padding: 16px 18px !important;
+      border-radius: 8px !important;
+      margin-bottom: 1.5rem !important;
+      font-size: 1rem !important;
+      color: #e5e7eb !important;
+      line-height: 1.6;
+    }
+
+    .mentor-note-section-title {
+      color: #ffffff !important;
+      font-size: 1rem !important;
+      font-weight: 700;
+      margin-bottom: 12px;
+      margin-top: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mentor-note-textarea {
+      width: 100% !important;
+      min-height: 90px !important;
+      padding: 14px !important;
+      background: #181818 !important;
+      border: 1px solid #282828 !important;
+      border-left: 3px solid #ceff00 !important;
+      border-radius: 8px !important;
+      color: #ffffff !important;
+      outline: none !important;
+      resize: vertical !important;
+      font-family: inherit !important;
+      font-size: 0.95rem !important;
+      box-sizing: border-box !important;
+      transition: all 0.2s;
+    }
+    .mentor-note-textarea:focus {
+      border-color: #ceff00 !important;
+      box-shadow: 0 0 8px rgba(206, 255, 0, 0.1);
+    }
+
+    .save-note-btn-ref {
+      border: 1px solid #ceff00 !important;
+      color: #ceff00 !important;
+      background: transparent !important;
+      padding: 10px 20px !important;
+      border-radius: 8px !important;
+      font-weight: 700 !important;
+      font-size: 0.9rem !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      outline: none;
+    }
+    .save-note-btn-ref:hover {
+      background: rgba(206, 255, 0, 0.1) !important;
+      box-shadow: 0 0 10px rgba(206, 255, 0, 0.2);
+    }
   </style>
 </head>
 <body>
@@ -237,7 +392,7 @@
       container.innerHTML = '';
 
       if (!dailyLog) {
-        container.innerHTML = '<div class="card"><p style="text-align:center; margin:0;">Student has not started a diary on this date.</p></div>';
+        container.innerHTML = '<div class="mentor-task-card" style="text-align:center; padding: 2.5rem !important;"><p style="margin:0; font-size:1.1rem; color:#9ca3af;">Student has not started a diary on this date.</p></div>';
         return;
       }
 
@@ -245,41 +400,43 @@
         const entry = taskEntries[task.id];
         
         const card = document.createElement('div');
-        card.className = 'card';
-        
-        const numberColor = task.sort_order % 2 !== 0 ? '#f5f3ff' : '#f0f9ff';
-        const numberTextColor = task.sort_order % 2 !== 0 ? '#4c1d95' : '#0369a1';
+        card.className = 'mentor-task-card';
 
         let headerHtml = `
           <div class="task-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 16px;">
-              <div style="width: 44px; height: 44px; border-radius: 10px; background: ${numberColor}; color: ${numberTextColor}; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700;">
+              <div class="task-number-badge">
                 ${task.sort_order}
               </div>
-              <h3 style="margin: 0; font-size: 1.15rem; font-weight: 600; color: #111;">${task.title}</h3>
+              <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700;">${task.title}</h3>
             </div>
           </div>
         `;
         
-        let contentHtml = '<p style="color:var(--text-secondary); font-style:italic;">No entry submitted yet.</p>';
+        let contentHtml = '<p style="color:#9ca3af; font-style:italic; margin-top: 1rem;">No entry submitted yet.</p>';
         let reviewActions = '';
 
         if (entry && entry.content) {
           const isApproved = entry.approved;
           headerHtml = `
-            <div class="task-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
+            <div class="task-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
               <div style="display: flex; align-items: center; gap: 16px;">
-                <div style="width: 44px; height: 44px; border-radius: 10px; background: ${numberColor}; color: ${numberTextColor}; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700;">
+                <div class="task-number-badge">
                   ${task.sort_order}
                 </div>
-                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 600; color: #111;">${task.title}</h3>
+                <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700;">${task.title}</h3>
               </div>
-              <div>
-                <button id="btn-approve-${entry.id}" class="btn" style="${isApproved ? 'background: #10b981; color: white; border: none; padding: 10px 16px; border-radius: 8px;' : 'background: #635bff; color: white; border: none; padding: 10px 16px; border-radius: 8px;'}" onclick="toggleApproval('${entry.id}', ${isApproved})">
-                  <svg style="margin-right: 6px; width:18px; height:18px; vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                  ${isApproved ? 'Approved' : 'Approve Task (+1 Pt)'}
+              <div style="text-align: right;">
+                <button id="btn-approve-${entry.id}" class="${isApproved ? 'approved-badge-ref' : 'pending-btn-ref'}" onclick="toggleApproval('${entry.id}', ${isApproved})">
+                  ${isApproved ? `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    Approved
+                  ` : `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    Approve Task (+1 Pt)
+                  `}
                 </button>
-                ${isApproved && entry.profiles ? `<div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px; text-align: right;">by ${entry.profiles.full_name}</div>` : ''}
+                ${isApproved && entry.profiles ? `<div style="font-size: 0.75rem; color: #9ca3af; margin-top: 6px; text-align: right;">by ${entry.profiles.full_name}</div>` : ''}
               </div>
             </div>
           `;
@@ -299,7 +456,7 @@
           if (taskTitleClean === 'weight' && dailyLog.weight) extraLogInfo = ` (Recorded: ${dailyLog.weight} kg)`;
           if (taskTitleClean === 'eat smart') {
             extraLogInfo = `
-              <ul style="font-size:0.875rem; margin-top:8px; padding-left:16px;">
+              <ul style="font-size:0.9rem; margin-top:8px; padding-left:16px; color:#d1d5db; list-style-type: disc;">
                 <li>Breakfast: ${dailyLog.eat_smart_breakfast || '-'}</li>
                 <li>Lunch: ${dailyLog.eat_smart_lunch || '-'}</li>
                 <li>Tea: ${dailyLog.eat_smart_tea || '-'}</li>
@@ -309,11 +466,26 @@
             `;
           }
 
+          // Build dynamic section label
+          let sectionLabel = 'Submission Details';
+          if (taskTitleClean === 'master the mic') {
+            sectionLabel = 'Story Summary';
+          } else if (taskTitleClean === 'sleep') {
+            sectionLabel = 'Sleep Details';
+          } else if (taskTitleClean === 'weight') {
+            sectionLabel = 'Weight Log';
+          } else if (taskTitleClean === 'eat smart') {
+            sectionLabel = 'Diet Log';
+          } else {
+            sectionLabel = task.title;
+          }
+
           if (entry.content && entry.content.startsWith('data:image/')) {
             contentHtml = `
-              <div style="background: #fafafa; border: 1px solid #f3f4f6; padding: 18px; border-radius: 8px; margin-bottom: 1.5rem; text-align: center;">
-                <img src="${entry.content}" style="max-width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; max-height: 400px; object-fit: contain;">
-                ${extraLogInfo ? `<p style="margin-top:12px; color:#374151;">${extraLogInfo}</p>` : ''}
+              <div class="task-section-title">${sectionLabel}</div>
+              <div class="submission-content-box" style="text-align: center;">
+                <img src="${entry.content}" style="max-width: 100%; border-radius: 8px; border: 1px solid #333; max-height: 400px; object-fit: contain;">
+                ${extraLogInfo ? `<p style="margin-top:12px; color:#e5e7eb; font-size:0.95rem;">${extraLogInfo}</p>` : ''}
               </div>
             `;
           } else {
@@ -331,22 +503,23 @@
               }
             }
             contentHtml = `
-              <div style="background: #fafafa; border: 1px solid #f3f4f6; padding: 18px; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.6;">
-                <p style="color: #374151; margin: 0; white-space: pre-wrap;">${displayContent}${extraLogInfo}</p>
+              <div class="task-section-title">${sectionLabel}</div>
+              <div class="submission-content-box">
+                <p style="margin: 0; white-space: pre-wrap;">${displayContent}${extraLogInfo}</p>
               </div>
             `;
           }
 
           reviewActions = `
             <div>
-              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: #4b5563; font-weight: 600; font-size: 0.9rem;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#635bff" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <div class="mentor-note-section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ceff00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 Mentor Note
               </div>
-              <textarea id="note-${entry.id}" placeholder="Provide feedback..." style="width: 100%; min-height: 80px; padding: 14px; border: 1px solid #e5e7eb; border-radius: 8px; outline: none; resize: vertical; font-family: inherit; font-size: 0.95rem; box-sizing: border-box;">${entry.mentor_note || ''}</textarea>
-              <div style="text-align: right; margin-top: 12px;">
-                <button class="btn btn-sm" style="background: white; border: 1px solid #c7d2fe; color: #4f46e5; font-weight: 600; padding: 8px 16px; border-radius: 8px; transition: all 0.2s;" onclick="saveMentorNote('${entry.id}', '${task.id}', this)">
-                  <svg style="margin-right: 6px; width:16px; height:16px; vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <textarea id="note-${entry.id}" class="mentor-note-textarea" placeholder="Provide feedback...">${entry.mentor_note || ''}</textarea>
+              <div style="text-align: right; margin-top: 14px;">
+                <button class="save-note-btn-ref" onclick="saveMentorNote('${entry.id}', '${task.id}', this)">
+                  <svg style="width:16px; height:16px; vertical-align: middle; margin-right: 4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                   Save Note
                 </button>
               </div>
