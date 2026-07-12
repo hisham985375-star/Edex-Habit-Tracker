@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -21,7 +21,10 @@
         <input type="email" id="email" class="premium-input" required placeholder="Enter Your Email">
       </div>
       <div class="form-group" style="position: relative;">
-        <label for="password">Password</label>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <label for="password" style="margin-bottom: 0;">Password</label>
+          <a href="forgot_password.html?portal=mentor" style="font-size: 0.8rem; color: #ceff00; text-decoration: none; font-weight: 500;">Forgot Password?</a>
+        </div>
         <input type="password" id="password" class="premium-input" required placeholder="Enter Your Password" style="padding-right: 60px !important;">
         <button type="button" onclick="togglePassword('password', this)" style="position: absolute; right: 12px; top: 38px; background: none; border: none; color: #ceff00; font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 0;">Show</button>
       </div>
