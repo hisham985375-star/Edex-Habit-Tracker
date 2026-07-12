@@ -6,15 +6,191 @@
   <title>Leaderboard - Edex Habit Tracker</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --neon-green: #ccff00;
+      --dark-card: #111111;
+      --bg-page: #f4f5f7;
+    }
+    body {
+      background: var(--bg-page) !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .mentor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 2rem;
+      background: var(--dark-card) !important;
+      border-radius: 16px;
+      margin-top: 1.5rem;
+      margin-bottom: 3rem;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .mentor-avatar {
+      width: 56px;
+      height: 56px;
+      background: var(--neon-green) !important;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000 !important;
+    }
+    .header-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-subtitle {
+      font-size: 0.9rem;
+      color: #9ca3af;
+      margin: 0;
+    }
+    .btn-outline-purple {
+      background: var(--neon-green);
+      border: none;
+      color: #000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-outline-purple:hover {
+      background: #b3e600;
+    }
+    .review-card {
+      background: var(--dark-card) !important;
+      border-radius: 16px;
+      padding: 2.5rem;
+      max-width: 650px;
+      margin: 0 auto;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .review-card::before { display: none; }
+    .review-card-content { position: relative; z-index: 1; }
+    
+    .card-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff !important;
+      margin: 0;
+    }
+    .gradient-line {
+      height: 4px;
+      width: 48px;
+      background: var(--neon-green);
+      border-radius: 2px;
+    }
+    /* Table styles */
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .table th {
+      background: #1a1a1a !important;
+      border-bottom: none !important;
+      color: var(--neon-green) !important;
+      padding: 16px 12px;
+      font-weight: 600;
+      text-align: left;
+    }
+    .table th:first-child {
+      border-top-left-radius: 8px;
+      border-bottom-left-radius: 8px;
+    }
+    .table th:last-child {
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+    .table td {
+      padding: 16px 12px;
+      border-bottom: 1px solid #222;
+      color: #fff;
+    }
+    
+    .seg-btn {
+      padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; background: transparent; color: #fff;
+    }
+    .rankings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 1;
+    }
+    .seg-container {
+      display: flex;
+      background: #1a1a1a;
+      padding: 4px;
+      border-radius: 12px;
+      gap: 4px;
+      border: 1px solid #333;
+    }
+    @media (max-width: 768px) {
+      .review-card {
+        padding: 1.5rem;
+      }
+      .rankings-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+      }
+      .seg-container {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .seg-btn {
+        flex: 1;
+        text-align: center;
+        padding: 8px 4px;
+        font-size: 0.85rem;
+      }
+      .table th, .table td {
+        padding: 12px 8px;
+        font-size: 0.9rem;
+      }
+      #winnerBanner {
+        padding: 20px !important;
+      }
+      .mentor-header {
+        padding: 1.5rem 1rem;
+      }
+    }
+  </style>
 </head>
-<body style="background: #fafafa;">
+<body>
   <div id="loader" class="loader" style="display: block;">Loading leaderboard...</div>
 
   <div id="appContent" style="display: none;">
     <div class="container" style="max-width: 1100px;">
       <header class="mentor-header">
         <div class="header-left">
-          <div class="mentor-avatar" style="background: #fef08a; color: #a16207;">
+          <div class="mentor-avatar">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
           <div>
@@ -40,31 +216,38 @@
 
           <div class="review-card-content">
             
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; position: relative; z-index: 1;">
+            <div class="rankings-header">
               <div class="card-title-group">
                 <h2 class="card-title">Rankings</h2>
                 <div class="gradient-line"></div>
               </div>
               
-              <div style="display: flex; background: #f3f4f6; padding: 4px; border-radius: 12px; gap: 4px;">
-                <button class="seg-btn" id="btnDaily" onclick="setFilter('daily')" style="padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; background: transparent; color: #6b7280;">Daily</button>
-                <button class="seg-btn" id="btnWeekly" onclick="setFilter('weekly')" style="padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; background: transparent; color: #6b7280;">Weekly</button>
-                <button class="seg-btn" id="btnMonthly" onclick="setFilter('monthly')" style="padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; background: transparent; color: #6b7280;">Monthly</button>
+              <div class="seg-container">
+                <button class="seg-btn" id="btnDaily" onclick="setFilter('daily')">Daily</button>
+                <button class="seg-btn" id="btnWeekly" onclick="setFilter('weekly')">Weekly</button>
+                <button class="seg-btn" id="btnMonthly" onclick="setFilter('monthly')">Monthly</button>
               </div>
             </div>
 
-            <div id="winnerBanner" style="display: none; background: linear-gradient(135deg, #fffbeb, #fef08a); border: 1px solid #fde047; border-radius: 16px; padding: 32px; text-align: center; margin-bottom: 32px; position: relative; z-index: 1; box-shadow: 0 10px 25px rgba(234, 179, 8, 0.2);">
-              <div style="font-size: 3rem; margin-bottom: 12px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">👑</div>
-              <h2 style="color: #854d0e; margin-bottom: 8px; font-size: 1.8rem; font-weight: 800;" id="winnerText">Winner!</h2>
-              <p style="font-size: 1.2rem; font-weight: 600; color: #a16207; margin: 0;" id="winnerSub"></p>
+            <div id="winnerBanner" style="display: none; background: #111; border: 1px solid #ccff00; border-radius: 16px; padding: 32px; text-align: center; margin-bottom: 32px; position: relative; z-index: 1; box-shadow: 0 10px 25px rgba(204, 255, 0, 0.1);">
+              <div style="margin-bottom: 12px; display: flex; justify-content: center;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccff00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="2 20 22 20 19 6 15 12 12 4 9 12 5 6 2 20"></polygon>
+                  <circle cx="12" cy="2" r="1" fill="#ccff00" stroke="none"></circle>
+                  <circle cx="5" cy="4" r="1" fill="#ccff00" stroke="none"></circle>
+                  <circle cx="19" cy="4" r="1" fill="#ccff00" stroke="none"></circle>
+                </svg>
+              </div>
+              <h2 style="color: #fff; margin-bottom: 8px; font-size: 1.8rem; font-weight: 800;" id="winnerText">Winner!</h2>
+              <p style="font-size: 1.2rem; font-weight: 600; color: #ccff00; margin: 0;" id="winnerSub"></p>
             </div>
 
             <table class="table" style="position: relative; z-index: 1; margin-top: 10px;">
               <thead>
                 <tr>
-                  <th style="background: rgba(243, 232, 255, 0.5); border-bottom: 1px solid #e9d5ff; color: #6b21a8;">Rank</th>
-                  <th style="background: rgba(243, 232, 255, 0.5); border-bottom: 1px solid #e9d5ff; color: #6b21a8;">Student</th>
-                  <th style="background: rgba(243, 232, 255, 0.5); border-bottom: 1px solid #e9d5ff; color: #6b21a8; text-align: right;">Points</th>
+                  <th>Rank</th>
+                  <th>Student</th>
+                  <th style="text-align: right;">Points</th>
                 </tr>
               </thead>
               <tbody id="leaderboardBody">
@@ -107,12 +290,12 @@
       ['Daily', 'Weekly', 'Monthly'].forEach(f => {
         const btn = document.getElementById('btn' + f);
         if (f.toLowerCase() === filter) {
-          btn.style.background = '#ffffff';
-          btn.style.color = '#7c3aed';
-          btn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+          btn.style.background = '#ccff00';
+          btn.style.color = '#000';
+          btn.style.boxShadow = 'none';
         } else {
           btn.style.background = 'transparent';
-          btn.style.color = '#6b7280';
+          btn.style.color = '#fff';
           btn.style.boxShadow = 'none';
         }
       });
@@ -140,31 +323,21 @@
       const startStr = startDate.toISOString().split('T')[0];
       const endStr = endDate.toISOString().split('T')[0];
 
-      // Fetch entries
-      const { data: entries } = await db.from('task_entries')
-        .select(`
-          points_awarded,
-          daily_logs!inner (
-            log_date,
-            user_id,
-            profiles!inner (
-              full_name
-            )
-          )
-        `)
-        .eq('approved', true)
-        .gte('daily_logs.log_date', startStr)
-        .lte('daily_logs.log_date', endStr);
-
-      const scores = {};
-      (entries || []).forEach(e => {
-        const userId = e.daily_logs.user_id;
-        const name = e.daily_logs.profiles.full_name;
-        if (!scores[userId]) scores[userId] = { name, points: 0 };
-        scores[userId].points += e.points_awarded;
+      // Fetch leaderboard using the RPC function that bypasses RLS
+      const { data: entries, error } = await db.rpc('get_leaderboard', { 
+        start_date: startStr, 
+        end_date: endStr 
       });
 
-      const leaderboard = Object.values(scores).sort((a, b) => b.points - a.points);
+      if (error) {
+        console.error("Error fetching leaderboard:", error);
+      }
+
+      const leaderboard = (entries || []).map(e => ({
+        name: e.full_name,
+        points: parseInt(e.total_points, 10)
+      }));
+
       renderLeaderboard(leaderboard);
     }
 
@@ -189,9 +362,9 @@
       leaderboard.forEach((student, idx) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td style="color: var(--text-secondary); font-weight: 500;">#${idx + 1}</td>
-          <td style="font-weight: 600;">${student.name}</td>
-          <td style="text-align: right; font-weight: 600;">${student.points} pt</td>
+          <td style="color: #fff; font-weight: 500;">#${idx + 1}</td>
+          <td style="color: #fff; font-weight: 600;">${student.name}</td>
+          <td style="color: #fff; text-align: right; font-weight: 600;">${student.points} pt</td>
         `;
         tbody.appendChild(tr);
       });
