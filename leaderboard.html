@@ -356,7 +356,12 @@
       // Winner
       const winner = leaderboard[0];
       banner.style.display = 'block';
-      document.getElementById('winnerText').textContent = `Winner of the ${currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1)}!`;
+      let titleStr = '';
+      if (currentFilter === 'daily') titleStr = 'Winner of the Day!';
+      else if (currentFilter === 'weekly') titleStr = 'Winner of this Week!';
+      else if (currentFilter === 'monthly') titleStr = 'Winner of the Month!';
+
+      document.getElementById('winnerText').textContent = titleStr;
       document.getElementById('winnerSub').textContent = `${winner.name} — ${winner.points} points`;
 
       leaderboard.forEach((student, idx) => {
