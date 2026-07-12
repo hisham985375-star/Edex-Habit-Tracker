@@ -55,8 +55,13 @@
   <script src="supabaseClient.js"></script>
   <script src="auth.js"></script>
   <script>
-    // If they are already logged in, redirect them immediately to their dashboard
-    redirectIfLoggedIn();
+    // Check if this is a password recovery redirect
+    if (window.location.hash && window.location.hash.includes('type=recovery')) {
+      window.location.href = 'reset_password.html' + window.location.hash;
+    } else {
+      // If they are already logged in, redirect them immediately to their dashboard
+      redirectIfLoggedIn();
+    }
   </script>
 </body>
 </html>

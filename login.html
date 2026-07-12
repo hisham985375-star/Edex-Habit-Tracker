@@ -42,7 +42,12 @@
   <script src="supabaseClient.js"></script>
   <script src="auth.js"></script>
   <script>
-    redirectIfLoggedIn();
+    // Check if this is a password recovery redirect
+    if (window.location.hash && window.location.hash.includes('type=recovery')) {
+      window.location.href = 'reset_password.html' + window.location.hash;
+    } else {
+      redirectIfLoggedIn();
+    }
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
