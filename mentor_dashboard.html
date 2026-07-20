@@ -395,7 +395,23 @@
               </div>
             </div>
 
-            <div style="margin-top: 1.5rem; overflow-x: auto;">
+            <!-- Search and Filter Bar -->
+            <div style="display: flex; gap: 12px; margin-top: 1.5rem; flex-wrap: wrap; align-items: center;">
+              <!-- Search -->
+              <div style="position: relative; flex: 1; min-width: 200px;">
+                <svg style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="studentSearch" placeholder="Search student name..." oninput="applyFilters()" style="width: 100%; padding: 10px 14px 10px 38px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 0.95rem; outline: none; box-sizing: border-box; font-family: inherit;">
+              </div>
+              <!-- Attendance Filter -->
+              <div style="display: flex; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                <button id="filterAll" onclick="setAttFilter('all')" style="padding: 10px 14px; border: none; background: var(--neon-green); color: #000; font-weight: 600; font-size: 0.85rem; cursor: pointer;">All</button>
+                <button id="filterPresent" onclick="setAttFilter('present')" style="padding: 10px 14px; border: none; background: transparent; color: #fff; font-weight: 600; font-size: 0.85rem; cursor: pointer; border-left: 1px solid #333;">Present</button>
+                <button id="filterLate" onclick="setAttFilter('late')" style="padding: 10px 14px; border: none; background: transparent; color: #fff; font-weight: 600; font-size: 0.85rem; cursor: pointer; border-left: 1px solid #333;">Late</button>
+                <button id="filterAbsent" onclick="setAttFilter('absent')" style="padding: 10px 14px; border: none; background: transparent; color: #fff; font-weight: 600; font-size: 0.85rem; cursor: pointer; border-left: 1px solid #333;">Absent</button>
+              </div>
+            </div>
+
+            <div style="margin-top: 1rem; overflow-x: auto;">
               <table class="table table-responsive-mobile">
                 <thead>
                   <tr>
@@ -421,6 +437,8 @@
   <script src="auth.js"></script>
   <script>
     let studentsData = [];
+    let cachedRows = []; // { name, attStatus, html }
+    let activeAttFilter = 'all';
 
     async function init() {
       const authData = await requireAuth('mentor');
@@ -462,6 +480,20 @@
 
     async function loadDashboardData(dateVal) {
       if (!dateVal) return;
+      cachedRows = [];
+      activeAttFilter = 'all';
+      // Reset filter button styles
+      ['filterAll', 'filterPresent', 'filterLate', 'filterAbsent'].forEach((id, i) => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.style.background = i === 0 ? 'var(--neon-green)' : 'transparent';
+          btn.style.color = i === 0 ? '#000' : '#fff';
+        }
+      });
+      // Clear search
+      const searchEl = document.getElementById('studentSearch');
+      if (searchEl) searchEl.value = '';
+
       const tbody = document.getElementById('studentListBody');
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem 0;">Loading data...</td></tr>';
 
@@ -494,6 +526,7 @@
           points = log.task_entries.reduce((sum, t) => sum + (t.points_awarded || 0), 0);
         }
         
+        const attStatus = att ? att.status : 'none';
         let attBadge = '<span class="badge badge-none">Not Marked</span>';
         if (att) {
           if (att.status === 'present') attBadge = '<span class="badge badge-present">Present</span>';
@@ -501,8 +534,7 @@
           else if (att.status === 'absent') attBadge = '<span class="badge badge-absent">Absent</span>';
         }
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
+        const rowHtml = `
           <td class="student-name-mobile" style="font-weight: 500;">${(student.full_name || '').toUpperCase()}</td>
           <td><div style="margin-bottom: 4px;" class="hide-on-pc">Attendance:</div>${attBadge}</td>
           <td><div style="margin-bottom: 4px;" class="hide-on-pc">Tasks Done:</div><span style="font-weight:600; color:var(--neon-green);">${tasksDone}</span> / 20</td>
@@ -513,13 +545,55 @@
             </button>
           </td>
         `;
-        tbody.appendChild(tr);
+
+        cachedRows.push({ name: (student.full_name || '').toLowerCase(), attStatus, html: rowHtml });
       });
+
+      applyFilters();
     }
 
     window.openReviewFor = function(studentId, dateVal) {
       if (!studentId || !dateVal) return;
       window.location.href = `mentor_review.html?studentId=${studentId}&date=${dateVal}`;
+    }
+
+    function setAttFilter(status) {
+      activeAttFilter = status;
+      const ids = ['filterAll', 'filterPresent', 'filterLate', 'filterAbsent'];
+      const vals = ['all', 'present', 'late', 'absent'];
+      ids.forEach((id, i) => {
+        const btn = document.getElementById(id);
+        if (vals[i] === status) {
+          btn.style.background = 'var(--neon-green)';
+          btn.style.color = '#000';
+        } else {
+          btn.style.background = 'transparent';
+          btn.style.color = '#fff';
+        }
+      });
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const tbody = document.getElementById('studentListBody');
+      const searchVal = (document.getElementById('studentSearch')?.value || '').toLowerCase().trim();
+
+      const filtered = cachedRows.filter(row => {
+        const nameMatch = !searchVal || row.name.includes(searchVal);
+        const attMatch = activeAttFilter === 'all' || row.attStatus === activeAttFilter;
+        return nameMatch && attMatch;
+      });
+
+      tbody.innerHTML = '';
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem 0; color: #9ca3af;">No students match your search/filter.</td></tr>';
+        return;
+      }
+      filtered.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = row.html;
+        tbody.appendChild(tr);
+      });
     }
 
     init();
