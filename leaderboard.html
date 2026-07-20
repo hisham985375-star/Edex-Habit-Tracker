@@ -301,27 +301,32 @@
       });
 
       const now = new Date();
-      let startDate = new Date();
-      let endDate = new Date();
-      
+      // Build local date string (YYYY-MM-DD) using local time parts to avoid UTC timezone shift
+      const toLocalDateStr = (d) => {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      };
+
+      let startStr, endStr;
+
       if (filter === 'daily') {
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        startStr = toLocalDateStr(now);
+        endStr = toLocalDateStr(now);
       } else if (filter === 'weekly') {
         const day = now.getDay();
         const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-        startDate = new Date(now.setDate(diff));
-        startDate.setHours(0, 0, 0, 0);
-        endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + 6);
-        endDate.setHours(23, 59, 59, 999);
+        const startOfWeek = new Date(now.getFullYear(), now.getMonth(), diff);
+        const endOfWeek = new Date(now.getFullYear(), now.getMonth(), diff + 6);
+        startStr = toLocalDateStr(startOfWeek);
+        endStr = toLocalDateStr(endOfWeek);
       } else if (filter === 'monthly') {
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        startStr = toLocalDateStr(startOfMonth);
+        endStr = toLocalDateStr(endOfMonth);
       }
-
-      const startStr = startDate.toISOString().split('T')[0];
-      const endStr = endDate.toISOString().split('T')[0];
 
       // Fetch leaderboard using the RPC function that bypasses RLS
       const { data: entries, error } = await db.rpc('get_leaderboard', { 
