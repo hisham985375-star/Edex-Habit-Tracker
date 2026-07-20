@@ -205,6 +205,48 @@
       background: rgba(206, 255, 0, 0.1) !important;
       box-shadow: 0 0 10px rgba(206, 255, 0, 0.2);
     }
+    
+    .summary-card {
+      background: #111111;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .summary-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .summary-label {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    
+    .summary-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .badge-present { background: #15803d; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 1rem; }
+    .badge-late { background: #b45309; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 1rem; }
+    .badge-absent { background: #dc2626; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 1rem; }
+    .badge-none { background: #333; color: #999; padding: 4px 10px; border-radius: 6px; font-size: 1rem; }
   </style>
 </head>
 <body>
@@ -236,6 +278,7 @@
     </header>
 
     <main class="container">
+      <div id="dailySummaryContainer"></div>
       <div id="tasksContainer"></div>
     </main>
   </div>
@@ -249,6 +292,7 @@
     let dailyLog = null;
     let allTasks = [];
     let taskEntries = {};
+    let studentAttendance = null;
 
     async function init() {
       const authData = await requireAuth('mentor');
@@ -318,6 +362,19 @@
       (entries || []).forEach(e => {
         taskEntries[e.task_id] = e;
       });
+
+      // Fetch attendance
+      const { data: attData, error: attError } = await db.from('attendance')
+        .select('*')
+        .eq('user_id', studentId)
+        .eq('date', reviewDate)
+        .single();
+        
+      if (!attError && attData) {
+        studentAttendance = attData;
+      } else {
+        studentAttendance = null;
+      }
     }
 
     async function toggleApproval(entryId, isCurrentlyApproved) {
@@ -389,12 +446,49 @@
 
     function renderTasks() {
       const container = document.getElementById('tasksContainer');
+      const summaryContainer = document.getElementById('dailySummaryContainer');
       container.innerHTML = '';
+      summaryContainer.innerHTML = '';
 
       if (!dailyLog) {
         container.innerHTML = '<div class="mentor-task-card" style="text-align:center; padding: 2.5rem !important;"><p style="margin:0; font-size:1.1rem; color:#9ca3af;">Student has not started a diary on this date.</p></div>';
         return;
       }
+      
+      // Calculate Tasks Done and Points
+      let tasksDone = 0;
+      let totalPoints = 0;
+      Object.values(taskEntries).forEach(entry => {
+        if (entry.content && entry.content.trim() !== '') {
+          tasksDone++;
+        }
+        totalPoints += (entry.points_awarded || 0);
+      });
+      
+      // Render Summary Widget
+      let attBadge = '<span class="badge-none">Not Marked</span>';
+      if (studentAttendance) {
+        if (studentAttendance.status === 'present') attBadge = '<span class="badge-present">Present</span>';
+        else if (studentAttendance.status === 'late') attBadge = '<span class="badge-late">Late</span>';
+        else if (studentAttendance.status === 'absent') attBadge = '<span class="badge-absent">Absent</span>';
+      }
+      
+      summaryContainer.innerHTML = `
+        <div class="summary-card">
+          <div class="summary-item">
+            <span class="summary-label">Attendance</span>
+            <span class="summary-value">${attBadge}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Tasks Completed</span>
+            <span class="summary-value" style="color: #ceff00;">${tasksDone} <span style="font-size: 1rem; color: #9ca3af; margin-left: 4px;">/ ${allTasks.length}</span></span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Points Earned</span>
+            <span class="summary-value" style="color: #ceff00;">${totalPoints} <span style="font-size: 1rem; color: #9ca3af; margin-left: 4px;">pts</span></span>
+          </div>
+        </div>
+      `;
 
       allTasks.forEach(task => {
         const entry = taskEntries[task.id];
