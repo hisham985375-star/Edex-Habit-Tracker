@@ -4,6 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Mentor Dashboard - Edex Habit Tracker</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -239,6 +242,49 @@
       opacity: 0.9;
       transform: translateY(-1px);
     }
+
+    /* Table styles */
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .table th {
+      background: transparent;
+      border-bottom: 1px solid #333;
+      color: var(--neon-green);
+      padding: 12px 0;
+      font-weight: 600;
+    }
+    .table td {
+      padding: 16px 0;
+      border-bottom: 1px solid #222;
+      color: #fff;
+    }
+    .badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .badge-present { background: #15803d; color: #fff; }
+    .badge-late { background: #b45309; color: #fff; }
+    .badge-absent { background: #dc2626; color: #fff; }
+    .badge-none { background: #333; color: #999; }
+    
+    @media (max-width: 768px) {
+      .hide-on-pc { display: block; }
+      .table-responsive-mobile { display: block; width: 100%; overflow-x: hidden; }
+      .table-responsive-mobile thead { display: none; }
+      .table-responsive-mobile tbody { display: block; width: 100%; }
+      .table-responsive-mobile tr { display: flex; flex-direction: column; margin-bottom: 1rem; padding: 1rem; border: 1px solid #333; border-radius: 12px; background: transparent; }
+      .table-responsive-mobile td { display: block; width: 100%; padding: 4px 0 !important; text-align: left !important; border: none !important; }
+      .student-name-mobile { font-size: 1.1rem; margin-bottom: 8px; color: #fff; font-weight: 700 !important; }
+      .review-card { max-width: 100%; padding: 1.5rem; }
+      .card-header-flex { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
+    @media (min-width: 769px) {
+      .hide-on-pc { display: none; }
+    }
   </style>
 </head>
 
@@ -291,7 +337,7 @@
       </header>
 
       <main>
-        <div class="review-card">
+        <div class="review-card" style="max-width: 900px;">
           <!-- Dot pattern top right -->
           <svg style="position:absolute; top:24px; right:24px; opacity:0.3; z-index:0;" width="40" height="40"
             viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
@@ -310,68 +356,61 @@
           </svg>
 
           <div class="review-card-content">
-            <div class="card-header-flex">
-              <div class="icon-container">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                  <path d="M8 14h.01" />
-                  <path d="M12 14h.01" />
-                  <path d="M16 14h.01" />
-                  <path d="M8 18h.01" />
-                  <path d="M12 18h.01" />
-                  <path d="M16 18h.01" />
-                </svg>
-              </div>
-              <div class="card-title-group">
-                <h2 class="card-title">Review Student Diary</h2>
-                <div style="display:flex; gap:4px; margin-top:2px;">
-                  <div class="gradient-line"></div>
-                  <div class="gradient-line" style="width:8px;"></div>
+            <div class="card-header-flex" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+              <div style="display: flex; gap: 16px; align-items: center;">
+                <div class="icon-container">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                    <path d="M8 14h.01" />
+                    <path d="M12 14h.01" />
+                    <path d="M16 14h.01" />
+                    <path d="M8 18h.01" />
+                    <path d="M12 18h.01" />
+                    <path d="M16 18h.01" />
+                  </svg>
+                </div>
+                <div class="card-title-group">
+                  <h2 class="card-title">Student Daily Overview</h2>
+                  <div style="display:flex; gap:4px; margin-top:2px;">
+                    <div class="gradient-line"></div>
+                    <div class="gradient-line" style="width:8px;"></div>
+                  </div>
                 </div>
               </div>
+              
+              <div class="form-group-custom" style="margin-bottom: 0; min-width: 200px;">
+                <label class="form-label-custom">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  Date to Review
+                </label>
+                <input type="text" id="dateSelect" class="form-input-custom" style="padding: 10px 14px;">
+              </div>
             </div>
 
-            <div class="form-group-custom">
-              <label class="form-label-custom">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-                Date to Review
-              </label>
-              <input type="text" id="dateSelect" class="form-input-custom">
+            <div style="margin-top: 1.5rem; overflow-x: auto;">
+              <table class="table table-responsive-mobile">
+                <thead>
+                  <tr>
+                    <th>Student Name</th>
+                    <th>Attendance</th>
+                    <th>Tasks Done</th>
+                    <th>Points</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="studentListBody">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
             </div>
-
-            <div class="form-group-custom">
-              <label class="form-label-custom">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                Select Student
-              </label>
-              <select id="studentSelect" class="form-input-custom"
-                style="appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ccff00%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 16px center;">
-                <option value="">Select a student...</option>
-                <!-- Rendered by JS -->
-              </select>
-            </div>
-
-            <button type="button" class="btn-gradient" onclick="window.openReview()">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-                <polyline points="10 9 9 9 8 9" />
-              </svg>
-              Open Review
-            </button>
           </div>
         </div>
       </main>
@@ -393,46 +432,93 @@
       title.innerHTML = `Welcome Mentor ${capName}`;
 
       const dateSelect = document.getElementById('dateSelect');
-      const select = document.getElementById('studentSelect');
-
-
-      flatpickr(dateSelect, {
-        defaultDate: new Date(),
-        dateFormat: "Y-m-d",
-        altInput: true,
-        altFormat: "d-m-Y",
-        disableMobile: true // Fixes mobile flatpickr UI issues
-      });
 
       const { data: students } = await db.from('profiles').select('*').eq('role', 'student').order('full_name');
       studentsData = students || [];
 
-      if (studentsData.length > 0) {
-        studentsData.forEach(s => {
-          const opt = document.createElement('option');
-          opt.value = s.id;
-          opt.textContent = (s.full_name || '').toUpperCase();
-          select.appendChild(opt);
-        });
-      }
+      // Add local timezone offset to show current local day correctly
+      const now = new Date();
+      const offset = now.getTimezoneOffset() * 60000;
+      const localISOTime = (new Date(now - offset)).toISOString().split('T')[0];
+
+      flatpickr(dateSelect, {
+        defaultDate: localISOTime,
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d-m-Y",
+        disableMobile: true, // Fixes mobile flatpickr UI issues
+        onChange: function(selectedDates, dateStr, instance) {
+          if(dateStr) {
+            loadDashboardData(dateStr);
+          }
+        }
+      });
+
+      await loadDashboardData(localISOTime);
 
       document.getElementById('loader').style.display = 'none';
       document.getElementById('appContent').style.display = 'block';
     }
 
-    window.openReview = function () {
-      const dateVal = document.getElementById('dateSelect').value;
-      const studentId = document.getElementById('studentSelect').value;
+    async function loadDashboardData(dateVal) {
+      if (!dateVal) return;
+      const tbody = document.getElementById('studentListBody');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem 0;">Loading data...</td></tr>';
 
-      if (!studentId) {
-        alert('Please select a student.');
+      // 1. Get attendance
+      const { data: attendance } = await db.from('attendance').select('*').eq('date', dateVal);
+      
+      // 2. Get daily logs and task entries
+      const { data: logs, error: logsError } = await db.from('daily_logs')
+        .select('id, user_id, task_entries(id, content, points_awarded, approved)')
+        .eq('log_date', dateVal);
+
+      if (logsError) console.error("Error loading logs:", logsError);
+
+      tbody.innerHTML = '';
+      
+      if (studentsData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem 0;">No students found.</td></tr>';
         return;
       }
-      if (!dateVal) {
-        alert('Please select a date.');
-        return;
-      }
 
+      studentsData.forEach(student => {
+        const att = attendance?.find(a => a.user_id === student.id);
+        const log = logs?.find(l => l.user_id === student.id);
+        
+        let tasksDone = 0;
+        let points = 0;
+        
+        if (log && log.task_entries) {
+          tasksDone = log.task_entries.filter(t => t.content && t.content.trim() !== '').length;
+          points = log.task_entries.reduce((sum, t) => sum + (t.points_awarded || 0), 0);
+        }
+        
+        let attBadge = '<span class="badge badge-none">Not Marked</span>';
+        if (att) {
+          if (att.status === 'present') attBadge = '<span class="badge badge-present">Present</span>';
+          else if (att.status === 'late') attBadge = '<span class="badge badge-late">Late</span>';
+          else if (att.status === 'absent') attBadge = '<span class="badge badge-absent">Absent</span>';
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="student-name-mobile" style="font-weight: 500;">${(student.full_name || '').toUpperCase()}</td>
+          <td><div style="margin-bottom: 4px;" class="hide-on-pc">Attendance:</div>${attBadge}</td>
+          <td><div style="margin-bottom: 4px;" class="hide-on-pc">Tasks Done:</div><span style="font-weight:600; color:var(--neon-green);">${tasksDone}</span> / 20</td>
+          <td><div style="margin-bottom: 4px;" class="hide-on-pc">Points:</div><span style="font-weight:600; color:var(--neon-green);">${points}</span> pts</td>
+          <td style="text-align: right; padding-top: 12px;">
+            <button class="btn-gradient" style="display:inline-flex; width:100%; margin-top:0; padding: 10px 16px; font-size: 0.9rem;" onclick="window.openReviewFor('${student.id}', '${dateVal}')">
+              Review Diary
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    window.openReviewFor = function(studentId, dateVal) {
+      if (!studentId || !dateVal) return;
       window.location.href = `mentor_review.html?studentId=${studentId}&date=${dateVal}`;
     }
 
