@@ -410,7 +410,7 @@
       const styles = {
         'Sleep': { icon: '🌙', color: '#a855f7' },
         'Fit & Strong': { icon: '💓', color: '#ec4899' },
-        'Weight': { icon: '⚖️', color: '#64748b' },
+        'Weight': { icon: '💬', color: '#22c55e' },
         'Eat Smart': { icon: '🍽️', color: '#10b981' },
         'Master the Mic': { icon: '🎤', color: '#8b5cf6' },
         'Mind Gym': { icon: '🧠', color: '#f43f5e' },
@@ -542,12 +542,16 @@
             </div>
         `;
       } else if (task.title === 'Weight') {
+        const isChecked = content === 'yes';
         inputHtml = `
-            <div style="display:flex; align-items:center; justify-content:center; margin-top: 16px;">
-              <div style="display:flex; align-items:baseline; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-                <input type="text" inputmode="decimal" value="${content}" onblur="handleSaveEntry('${task.id}', this.value)" placeholder="0.0" autocomplete="off" enterkeyhint="done" onkeydown="if(event.key === 'Enter' || event.keyCode === 13) { this.blur(); const btn = this.closest('.card').querySelector('.mobile-close-btn'); if(btn) btn.click(); }" oncontextmenu="return false;" onpaste="event.preventDefault(); return false;" ondrop="event.preventDefault(); return false;" onbeforeinput="enforceNoPaste(event)" style="font-size: 2.5rem; font-weight: 700; width: 100px; text-align: center; border: none; background: transparent; color: inherit; outline: none; padding: 0;">
-                <span style="font-size: 1.25rem; font-weight: 600; opacity: 0.8; margin-left: 4px;">Kg</span>
-              </div>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; margin-top: 24px; gap: 16px;">
+              <label style="display:flex; align-items:center; gap: 16px; cursor:pointer; background: rgba(255,255,255,0.05); padding: 18px 24px; border-radius: 16px; border: 2px solid ${isChecked ? '#22c55e' : 'rgba(255,255,255,0.15)'}; width: 100%; max-width: 320px; transition: all 0.2s;" onclick="toggleFeedbackCheck('${task.id}', this)">
+                <div id="feedbackCheck_${task.id}" style="width:28px; height:28px; border-radius:8px; border: 2px solid ${isChecked ? '#22c55e' : 'rgba(255,255,255,0.4)'}; background: ${isChecked ? '#22c55e' : 'transparent'}; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition: all 0.2s;">
+                  ${isChecked ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>` : ''}
+                </div>
+                <span style="font-size:1.05rem; font-weight:600; color:inherit; line-height:1.3;">Completed Today's<br>Feedback</span>
+              </label>
+              ${isChecked ? `<div style="display:flex; align-items:center; gap:6px; color:#22c55e; font-size:0.9rem; font-weight:600;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Marked as done!</div>` : `<p style="margin:0; font-size:0.85rem; opacity:0.55; text-align:center;">Tap to mark feedback as completed</p>`}
             </div>
         `;
       } else if (task.title === 'Fit & Strong') {
@@ -841,6 +845,19 @@
       });
 
       updateCards();
+    }
+
+
+    async function toggleFeedbackCheck(taskId, labelEl) {
+      const existing = taskEntries[taskId];
+      const currentVal = existing ? existing.content : '';
+      const newVal = currentVal === 'yes' ? 'no' : 'yes';
+
+      // Save to DB
+      await handleSaveEntry(taskId, newVal);
+
+      // Re-render only this card
+      renderTasks();
     }
 
     init();
