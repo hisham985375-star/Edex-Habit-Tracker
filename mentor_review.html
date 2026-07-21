@@ -502,7 +502,7 @@
               <div class="task-number-badge">
                 ${task.sort_order}
               </div>
-              <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700;">${task.title}</h3>
+              <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700;">${task.title === 'Weight' ? 'Feedback Form' : task.title}</h3>
             </div>
           </div>
         `;
@@ -518,7 +518,7 @@
                 <div class="task-number-badge">
                   ${task.sort_order}
                 </div>
-                <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700;">${task.title}</h3>
+                <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700;">${task.title === 'Weight' ? 'Feedback Form' : task.title}</h3>
               </div>
               <div style="text-align: right;">
                 <button id="btn-approve-${entry.id}" class="${isApproved ? 'approved-badge-ref' : 'pending-btn-ref'}" onclick="toggleApproval('${entry.id}', ${isApproved})">
@@ -567,7 +567,7 @@
           } else if (taskTitleClean === 'sleep') {
             sectionLabel = 'Sleep Details';
           } else if (taskTitleClean === 'weight') {
-            sectionLabel = 'Weight Log';
+            sectionLabel = 'Feedback Form Completed';
           } else if (taskTitleClean === 'eat smart') {
             sectionLabel = 'Diet Log';
           } else {
