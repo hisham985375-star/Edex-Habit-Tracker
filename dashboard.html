@@ -708,10 +708,18 @@
     function init3DScroll() {
       if (window.innerWidth > 768) return;
       
-      const scrollContainer = document.querySelector('.scroll-container');
-      const scene = document.querySelector('.sticky-scene');
-      const cards = Array.from(document.querySelectorAll('.card'));
-      if (!scrollContainer || cards.length === 0) return;
+      let scrollContainer = document.querySelector('.scroll-container');
+      if (!scrollContainer) return;
+
+      // Prevent duplicate event listeners and memory leaks by cloning the container
+      // Inline events (onblur, onchange) are preserved by cloneNode.
+      const clone = scrollContainer.cloneNode(true);
+      scrollContainer.parentNode.replaceChild(clone, scrollContainer);
+      scrollContainer = clone;
+
+      const scene = scrollContainer.querySelector('.sticky-scene');
+      const cards = Array.from(scrollContainer.querySelectorAll('.card'));
+      if (cards.length === 0) return;
 
       // Remove native scroll configurations and use standard block layout
       scrollContainer.style.height = '85vh';
@@ -727,7 +735,9 @@
       // Clean up any old spacers
       scrollContainer.querySelectorAll('.spacer').forEach(el => el.remove());
 
-      let currentIndex = 0;
+      let currentIndex = window.current3DIndex || 0;
+      // Ensure index is within bounds in case tasks changed
+      if (currentIndex >= cards.length) currentIndex = cards.length - 1;
       
       function updateCards() {
         cards.forEach((card, index) => {
@@ -817,12 +827,14 @@
             // Swiped left, go to next card
             if (currentIndex < cards.length - 1) {
                currentIndex++;
+               window.current3DIndex = currentIndex;
                updateCards();
             }
          } else if (diffX < -40) {
             // Swiped right, go to previous card
             if (currentIndex > 0) {
                currentIndex--;
+               window.current3DIndex = currentIndex;
                updateCards();
             }
          }
@@ -838,6 +850,7 @@
               toggleCardZoom(card, e);
            } else {
               currentIndex = index;
+              window.current3DIndex = currentIndex;
               updateCards();
            }
         });
