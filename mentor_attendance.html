@@ -113,7 +113,7 @@
               <div class="summary-header-row">
                 <div class="card-title-group">
                   <h2 class="card-title">Attendance Summary</h2>
-                  <p style="color:#9ca3af;margin:4px 0 0 0;font-size:0.88rem;">All-time attendance count per student</p>
+                  <p id="summarySubtitle" style="color:#9ca3af;margin:4px 0 0 0;font-size:0.88rem;">Loading...</p>
                   <div class="gradient-line" style="margin-top:8px;"></div>
                 </div>
                 <button class="btn-export" onclick="exportToCSV()">
@@ -122,6 +122,12 @@
                   </svg>
                   Export to Google Sheets (CSV)
                 </button>
+              </div>
+              <!-- Month navigator -->
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+                <button onclick="changeMonth(-1)" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:8px 14px;color:#fff;cursor:pointer;font-size:1.1rem;transition:all 0.2s;" onmouseover="this.style.borderColor='#ccff00'" onmouseout="this.style.borderColor='#333'">&lsaquo;</button>
+                <div id="monthLabel" style="flex:1;text-align:center;font-weight:700;font-size:1.05rem;color:#fff;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:9px 16px;"></div>
+                <button onclick="changeMonth(1)" id="nextMonthBtn" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:8px 14px;color:#fff;cursor:pointer;font-size:1.1rem;transition:all 0.2s;" onmouseover="this.style.borderColor='#ccff00'" onmouseout="this.style.borderColor='#333'">&rsaquo;</button>
               </div>
               <div id="summaryLoading" style="text-align:center;padding:32px;color:#9ca3af;display:none;">Loading summary...</div>
               <table class="table" style="position:relative;z-index:1;">
@@ -151,6 +157,10 @@
     let attendanceRecords = {};
     let summaryData = [];
     let summaryLoaded = false;
+    // Track which year/month the summary is showing (0-indexed month)
+    let summaryYear  = new Date().getFullYear();
+    let summaryMonth = new Date().getMonth();
+    const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
     async function init() {
       const authData = await requireAuth('mentor');
@@ -185,7 +195,36 @@
       document.getElementById('tabSummary').style.display = tab === 'summary' ? 'block' : 'none';
       document.getElementById('tabMarkBtn').classList.toggle('active', tab === 'mark');
       document.getElementById('tabSummaryBtn').classList.toggle('active', tab === 'summary');
-      if (tab === 'summary' && !summaryLoaded) loadSummary();
+      if (tab === 'summary') {
+        updateMonthLabel();
+        if (!summaryLoaded) loadSummary();
+      }
+    }
+
+    function updateMonthLabel() {
+      const now = new Date();
+      document.getElementById('monthLabel').textContent = `${MONTH_NAMES[summaryMonth]} ${summaryYear}`;
+      document.getElementById('summarySubtitle').textContent = `Showing attendance for ${MONTH_NAMES[summaryMonth]} ${summaryYear}`;
+      // Disable next button if already at current month
+      const isCurrentMonth = summaryYear === now.getFullYear() && summaryMonth === now.getMonth();
+      document.getElementById('nextMonthBtn').disabled = isCurrentMonth;
+      document.getElementById('nextMonthBtn').style.opacity = isCurrentMonth ? '0.4' : '1';
+      document.getElementById('nextMonthBtn').style.cursor  = isCurrentMonth ? 'not-allowed' : 'pointer';
+    }
+
+    function changeMonth(delta) {
+      const now = new Date();
+      summaryMonth += delta;
+      if (summaryMonth > 11) { summaryMonth = 0;  summaryYear++; }
+      if (summaryMonth < 0)  { summaryMonth = 11; summaryYear--; }
+      // Clamp to current month max
+      if (summaryYear > now.getFullYear() || (summaryYear === now.getFullYear() && summaryMonth > now.getMonth())) {
+        summaryYear  = now.getFullYear();
+        summaryMonth = now.getMonth();
+      }
+      summaryLoaded = false;
+      updateMonthLabel();
+      loadSummary();
     }
 
     async function loadAttendance() {
@@ -201,7 +240,15 @@
     async function loadSummary() {
       document.getElementById('summaryLoading').style.display = 'block';
       document.getElementById('summaryBody').innerHTML = '';
-      const { data: allRecords, error } = await db.from('attendance').select('user_id, status');
+      // Build start/end date for the selected month
+      const startDate = `${summaryYear}-${String(summaryMonth + 1).padStart(2,'0')}-01`;
+      const lastDay   = new Date(summaryYear, summaryMonth + 1, 0).getDate();
+      const endDate   = `${summaryYear}-${String(summaryMonth + 1).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+
+      const { data: allRecords, error } = await db.from('attendance')
+        .select('user_id, status')
+        .gte('date', startDate)
+        .lte('date', endDate);
       if (error) {
         console.error('Error loading summary:', error);
         document.getElementById('summaryLoading').style.display = 'none';
@@ -254,7 +301,8 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `attendance_summary_${new Date().toISOString().split('T')[0]}.csv`;
+      const monthStr = `${summaryYear}-${String(summaryMonth + 1).padStart(2,'0')}`;
+      a.download = `attendance_${MONTH_NAMES[summaryMonth]}_${summaryYear}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
