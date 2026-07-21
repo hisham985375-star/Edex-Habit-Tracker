@@ -207,27 +207,91 @@ CREATE POLICY "Mentors can view all suggestions" ON mentor_suggestions FOR SELEC
 CREATE POLICY "Mentors can insert suggestions" ON mentor_suggestions FOR INSERT WITH CHECK (get_user_role() = 'mentor');
 CREATE POLICY "Mentors can update suggestions" ON mentor_suggestions FOR UPDATE USING (get_user_role() = 'mentor');
 
--- Trigger to create profile automatically on Auth Signup? 
--- The user needs to supply full_name and role. We can pass these in user_metadata during signup.
+-- Trigger to create profile automatically on Auth Signup with Access Code Validation
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public
 AS $$
+DECLARE
+  input_code TEXT;
+  input_role TEXT;
+  is_valid BOOLEAN;
 BEGIN
+  input_role := new.raw_user_meta_data->>'role';
+  input_code := new.raw_user_meta_data->>'access_code';
+
+  -- If this is an API signup (processed under anon or authenticated roles)
+  IF current_setting('role', true) IN ('anon', 'authenticated') THEN
+    -- Enforce role presence and validity
+    IF input_role IS NULL OR input_role NOT IN ('student', 'mentor') THEN
+      RAISE EXCEPTION 'A valid role (student/mentor) must be provided in user metadata.';
+    END IF;
+
+    -- Validate access code against the access_codes table
+    SELECT EXISTS(
+      SELECT 1 FROM public.access_codes 
+      WHERE role::text = input_role AND code = input_code
+    ) INTO is_valid;
+
+    IF NOT is_valid THEN
+      RAISE EXCEPTION 'Invalid access code for the role: %', input_role;
+    END IF;
+  END IF;
+
+  -- Create profile
   INSERT INTO public.profiles (id, full_name, role)
   VALUES (
     new.id,
     new.raw_user_meta_data->>'full_name',
-    (new.raw_user_meta_data->>'role')::public.user_role
+    COALESCE(input_role, 'student')::public.user_role
   );
   RETURN new;
 END;
 $$;
 
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
-\ n - -   F u n c t i o n   t o   s e c u r e l y   f e t c h   l e a d e r b o a r d   d a t a ,   b y p a s s i n g   R L S \ n C R E A T E   O R   R E P L A C E   F U N C T I O N   g e t _ l e a d e r b o a r d ( s t a r t _ d a t e   D A T E ,   e n d _ d a t e   D A T E ) \ n R E T U R N S   T A B L E   ( \ n     u s e r _ i d   U U I D , \ n     f u l l _ n a m e   T E X T , \ n     t o t a l _ p o i n t s   B I G I N T \ n ) \ n L A N G U A G E   s q l \ n S E C U R I T Y   D E F I N E R \ n A S   \ $ \ $ \ n     S E L E C T   \ n         d l . u s e r _ i d , \ n         p . f u l l _ n a m e , \ n         C O A L E S C E ( S U M ( t e . p o i n t s _ a w a r d e d ) ,   0 ) : : B I G I N T   a s   t o t a l _ p o i n t s \ n     F R O M   d a i l y _ l o g s   d l \ n     J O I N   p r o f i l e s   p   O N   p . i d   =   d l . u s e r _ i d \ n     J O I N   t a s k _ e n t r i e s   t e   O N   t e . d a i l y _ l o g _ i d   =   d l . i d \ n     W H E R E   t e . a p p r o v e d   =   t r u e \ n         A N D   d l . l o g _ d a t e   > =   s t a r t _ d a t e \ n         A N D   d l . l o g _ d a t e   < =   e n d _ d a t e \ n     G R O U P   B Y   d l . u s e r _ i d ,   p . f u l l _ n a m e \ n     O R D E R   B Y   t o t a l _ p o i n t s   D E S C ; \ n \ $ \ $ ; \ n  
- 
+-- Trigger to prevent role updates on profiles table
+CREATE OR REPLACE FUNCTION public.prevent_profile_role_update()
+RETURNS trigger AS $$
+BEGIN
+  IF NEW.role IS DISTINCT FROM OLD.role THEN
+    RAISE EXCEPTION 'Role updates are not permitted.';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS check_profile_role_update ON public.profiles;
+CREATE TRIGGER check_profile_role_update
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION public.prevent_profile_role_update();
+
+-- Function to securely fetch leaderboard data, bypassing RLS
+CREATE OR REPLACE FUNCTION get_leaderboard(start_date DATE, end_date DATE)
+RETURNS TABLE (
+    user_id UUID,
+    full_name TEXT,
+    total_points BIGINT
+)
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+    SELECT 
+        dl.user_id,
+        p.full_name,
+        COALESCE(SUM(te.points_awarded), 0)::BIGINT as total_points
+    FROM daily_logs dl
+    JOIN profiles p ON p.id = dl.user_id
+    JOIN task_entries te ON te.daily_log_id = dl.id
+    WHERE te.approved = true
+        AND dl.log_date >= start_date
+        AND dl.log_date <= end_date
+    GROUP BY dl.user_id, p.full_name
+    ORDER BY total_points DESC;
+$$;

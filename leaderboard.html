@@ -219,7 +219,8 @@
             <div class="rankings-header">
               <div class="card-title-group">
                 <h2 class="card-title">Rankings</h2>
-                <div class="gradient-line"></div>
+                <p id="dateRangeDisplay" style="color: #9ca3af; margin: 4px 0 0 0; font-size: 0.9rem; font-weight: 500;"></p>
+                <div class="gradient-line" style="margin-top: 8px;"></div>
               </div>
               
               <div class="seg-container">
@@ -312,8 +313,10 @@
       let startStr, endStr;
 
       if (filter === 'daily') {
-        startStr = toLocalDateStr(now);
-        endStr = toLocalDateStr(now);
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        startStr = toLocalDateStr(yesterday);
+        endStr = toLocalDateStr(yesterday);
       } else if (filter === 'weekly') {
         const day = now.getDay();
         const diff = now.getDate() - day + (day === 0 ? -6 : 1);
@@ -326,6 +329,12 @@
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         startStr = toLocalDateStr(startOfMonth);
         endStr = toLocalDateStr(endOfMonth);
+      }
+
+      if (filter === 'daily') {
+        document.getElementById('dateRangeDisplay').textContent = `Showing points for: ${startStr} (Yesterday)`;
+      } else {
+        document.getElementById('dateRangeDisplay').textContent = `Showing points for: ${startStr} to ${endStr}`;
       }
 
       // Fetch leaderboard using the RPC function that bypasses RLS
@@ -362,7 +371,7 @@
       const winner = leaderboard[0];
       banner.style.display = 'block';
       let titleStr = '';
-      if (currentFilter === 'daily') titleStr = 'Winner of the Day!';
+      if (currentFilter === 'daily') titleStr = 'Winner of Yesterday!';
       else if (currentFilter === 'weekly') titleStr = 'Winner of this Week!';
       else if (currentFilter === 'monthly') titleStr = 'Winner of the Month!';
 
