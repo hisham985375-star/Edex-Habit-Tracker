@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -131,7 +131,6 @@
                     <th style="text-align:center;">Present</th>
                     <th style="text-align:center;">Late</th>
                     <th style="text-align:center;">Absent</th>
-                    <th style="text-align:center;">Total Days</th>
                   </tr>
                 </thead>
                 <tbody id="summaryBody"></tbody>
@@ -226,18 +225,16 @@
       const tbody = document.getElementById('summaryBody');
       tbody.innerHTML = '';
       if (summaryData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:#9ca3af;">No attendance records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px;color:#9ca3af;">No attendance records found.</td></tr>`;
         return;
       }
       summaryData.forEach(s => {
-        const total = s.present + s.late + s.absent;
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td style="font-weight:600;color:#fff;">${(s.name || '').toUpperCase()}</td>
           <td style="text-align:center;"><span class="badge badge-present">${s.present}</span></td>
           <td style="text-align:center;"><span class="badge badge-late">${s.late}</span></td>
           <td style="text-align:center;"><span class="badge badge-absent">${s.absent}</span></td>
-          <td style="text-align:center;color:#9ca3af;font-weight:600;">${total}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -249,8 +246,8 @@
         return;
       }
       const rows = [
-        ['Student Name', 'Present', 'Late', 'Absent', 'Total Days'],
-        ...summaryData.map(s => [s.name, s.present, s.late, s.absent, s.present + s.late + s.absent])
+        ['Student Name', 'Present', 'Late', 'Absent'],
+        ...summaryData.map(s => [s.name, s.present, s.late, s.absent])
       ];
       const csv = rows.map(r => r.map(cell => `"${cell}"`).join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
