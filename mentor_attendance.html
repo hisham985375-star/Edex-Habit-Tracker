@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -9,170 +9,62 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <style>
-    :root {
-      --neon-green: #ccff00;
-      --dark-card: #111111;
-      --bg-page: #f4f5f7;
-    }
-    body {
-      background: var(--bg-page) !important;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-    .mentor-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1.5rem 2rem;
-      border-bottom: none;
-      background: var(--dark-card);
-      border-radius: 16px;
-      margin-top: 1.5rem;
-      margin-bottom: 3rem;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-    }
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    .mentor-avatar {
-      width: 56px;
-      height: 56px;
-      background: var(--neon-green);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #000;
-    }
-    .header-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #fff;
-      margin: 0 0 4px 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .header-subtitle {
-      font-size: 0.9rem;
-      color: #9ca3af;
-      margin: 0;
-    }
-    .btn-outline-purple {
-      background: var(--neon-green);
-      border: none;
-      color: #000;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      text-decoration: none;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-outline-purple:hover {
-      background: #b3e600;
-    }
-    .review-card {
-      background: var(--dark-card);
-      border-radius: 16px;
-      padding: 2.5rem;
-      max-width: 650px;
-      margin: 0 auto;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-      position: relative;
-      overflow: hidden;
-    }
-    .review-card::before { display: none; }
-    .review-card-content { position: relative; z-index: 1; }
-    
-    .card-title-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .card-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #fff;
-      margin: 0;
-    }
-    .gradient-line {
-      height: 4px;
-      width: 48px;
-      background: var(--neon-green);
-      border-radius: 2px;
-    }
-    .form-input-custom {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid #333;
-      border-radius: 8px;
-      font-size: 1rem;
-      color: #fff;
-      background: transparent;
-      outline: none;
-      font-family: inherit;
-    }
-    .form-input-custom:focus {
-      border-color: var(--neon-green);
-    }
-    
-    /* Table styles */
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .table th {
-      background: transparent !important;
-      border-bottom: 1px solid #333 !important;
-      color: var(--neon-green) !important;
-      padding: 12px 0;
-      font-weight: 600;
-    }
-    .table td {
-      padding: 16px 0;
-      border-bottom: 1px solid #222;
-      color: #fff;
-    }
-    
-    .btn-status {
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    @media (max-width: 768px) {
-      .table-responsive-mobile { display: block; width: 100%; overflow-x: hidden; }
-      .table-responsive-mobile thead { display: none; }
-      .table-responsive-mobile tbody { display: block; width: 100%; }
-      .table-responsive-mobile tr { display: flex; flex-direction: column; margin-bottom: 1rem; padding: 1rem; border: 1px solid #333; border-radius: 12px; background: transparent; }
-      .table-responsive-mobile td { display: block; width: 100%; padding: 0 !important; text-align: left !important; border: none !important; }
-      .student-name-mobile { font-size: 1.1rem; margin-bottom: 12px; color: #fff; font-weight: 700 !important; }
-      .attendance-btns-mobile { display: flex !important; width: 100%; gap: 8px; justify-content: space-between; }
-      .attendance-btns-mobile button { flex: 1; min-width: 0; padding: 10px 4px !important; font-size: 0.85rem !important; }
-      .date-select-mobile-wrapper { flex-direction: column !important; align-items: stretch !important; gap: 16px !important; margin-bottom: 24px !important; }
-      .date-select-mobile-wrapper input { width: 100% !important; }
-      .mentor-header { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1.5rem; }
-      .header-actions { width: 100%; }
-      .header-actions a { width: 100%; justify-content: center; }
+    :root { --neon-green: #ccff00; --dark-card: #111111; --bg-page: #f4f5f7; }
+    body { background: var(--bg-page) !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .mentor-header { display:flex; justify-content:space-between; align-items:center; padding:1.5rem 2rem; background:var(--dark-card); border-radius:16px; margin-top:1.5rem; margin-bottom:3rem; flex-wrap:wrap; gap:1.5rem; }
+    .header-left { display:flex; align-items:center; gap:1rem; }
+    .mentor-avatar { width:56px; height:56px; background:var(--neon-green); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#000; }
+    .header-title { font-size:1.5rem; font-weight:700; color:#fff; margin:0 0 4px 0; display:flex; align-items:center; gap:8px; }
+    .header-subtitle { font-size:0.9rem; color:#9ca3af; margin:0; }
+    .btn-outline-purple { background:var(--neon-green); border:none; color:#000; display:flex; align-items:center; gap:8px; padding:8px 16px; border-radius:8px; font-weight:600; font-size:0.9rem; text-decoration:none; cursor:pointer; transition:all 0.2s; }
+    .btn-outline-purple:hover { background:#b3e600; }
+    .review-card { background:var(--dark-card); border-radius:16px; padding:2.5rem; max-width:800px; margin:0 auto; box-shadow:0 10px 40px rgba(0,0,0,0.1); position:relative; overflow:hidden; }
+    .review-card::before { display:none; }
+    .review-card-content { position:relative; z-index:1; }
+    .card-title-group { display:flex; flex-direction:column; gap:4px; }
+    .card-title { font-size:1.5rem; font-weight:700; color:#fff; margin:0; }
+    .gradient-line { height:4px; width:48px; background:var(--neon-green); border-radius:2px; }
+    .form-input-custom { width:100%; padding:10px 14px; border:1px solid #333; border-radius:8px; font-size:1rem; color:#fff; background:transparent; outline:none; font-family:inherit; }
+    .form-input-custom:focus { border-color:var(--neon-green); }
+    .tab-container { display:flex; background:#1a1a1a; padding:4px; border-radius:12px; gap:4px; border:1px solid #333; margin-bottom:28px; }
+    .tab-btn { flex:1; padding:10px 16px; border:none; border-radius:8px; font-weight:600; font-size:0.9rem; cursor:pointer; transition:all 0.2s; background:transparent; color:#fff; }
+    .tab-btn.active { background:#ccff00; color:#000; }
+    .table { width:100%; border-collapse:collapse; }
+    .table th { background:#1a1a1a !important; border-bottom:none !important; color:var(--neon-green) !important; padding:14px 12px; font-weight:600; text-align:left; }
+    .table th:first-child { border-top-left-radius:8px; border-bottom-left-radius:8px; }
+    .table th:last-child  { border-top-right-radius:8px; border-bottom-right-radius:8px; }
+    .table td { padding:14px 12px; border-bottom:1px solid #222; color:#fff; }
+    .badge { display:inline-block; padding:4px 12px; border-radius:20px; font-weight:700; font-size:0.85rem; min-width:36px; text-align:center; }
+    .badge-present { background:#14532d; color:#4ade80; }
+    .badge-late    { background:#451a03; color:#fb923c; }
+    .badge-absent  { background:#450a0a; color:#f87171; }
+    .btn-export { display:flex; align-items:center; gap:8px; padding:10px 18px; background:#1a1a1a; border:1px solid #333; border-radius:10px; color:#ccff00; font-weight:600; font-size:0.9rem; cursor:pointer; transition:all 0.2s; }
+    .btn-export:hover { background:#222; border-color:#ccff00; }
+    .summary-header-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    @media (max-width:768px) {
+      .table-responsive-mobile { display:block; width:100%; overflow-x:auto; }
+      .table-responsive-mobile thead { display:none; }
+      .table-responsive-mobile tbody { display:block; width:100%; }
+      .table-responsive-mobile tr { display:flex; flex-direction:column; margin-bottom:1rem; padding:1rem; border:1px solid #333; border-radius:12px; }
+      .table-responsive-mobile td { display:block; width:100%; padding:0 !important; text-align:left !important; border:none !important; }
+      .student-name-mobile { font-size:1.1rem; margin-bottom:12px; color:#fff; font-weight:700 !important; }
+      .attendance-btns-mobile { display:flex !important; width:100%; gap:8px; justify-content:space-between; }
+      .attendance-btns-mobile button { flex:1; min-width:0; padding:10px 4px !important; font-size:0.85rem !important; }
+      .date-select-mobile-wrapper { flex-direction:column !important; align-items:stretch !important; gap:16px !important; margin-bottom:24px !important; }
+      .date-select-mobile-wrapper input { width:100% !important; }
+      .mentor-header { flex-direction:column; align-items:flex-start; gap:1rem; padding:1.5rem; }
+      .header-actions { width:100%; }
+      .header-actions a { width:100%; justify-content:center; }
+      .review-card { padding:1.5rem; }
+      .summary-header-row { flex-direction:column; align-items:flex-start; }
+      .btn-export { width:100%; justify-content:center; }
     }
   </style>
 </head>
 <body>
-  <div id="loader" class="loader" style="display: block;">Loading attendance...</div>
-
-  <div id="appContent" style="display: none;">
-    <div class="container" style="max-width: 1100px;">
+  <div id="loader" class="loader" style="display:block;">Loading attendance...</div>
+  <div id="appContent" style="display:none;">
+    <div class="container" style="max-width:1100px;">
       <header class="mentor-header">
         <div class="header-left">
           <div class="mentor-avatar">
@@ -180,7 +72,7 @@
           </div>
           <div>
             <h1 class="header-title">Attendance</h1>
-            <p class="header-subtitle">Manage daily student attendance</p>
+            <p class="header-subtitle">Manage and review student attendance</p>
           </div>
         </div>
         <div class="header-actions">
@@ -190,34 +82,61 @@
           </a>
         </div>
       </header>
-
       <main>
         <div class="review-card">
-          <svg style="position:absolute; top:24px; right:24px; opacity:0.3; z-index:0;" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <svg style="position:absolute;top:24px;right:24px;opacity:0.3;z-index:0;" width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
             <circle cx="2" cy="2" r="1.5" fill="#a855f7"/><circle cx="14" cy="2" r="1.5" fill="#a855f7"/><circle cx="26" cy="2" r="1.5" fill="#a855f7"/><circle cx="38" cy="2" r="1.5" fill="#a855f7"/>
             <circle cx="2" cy="14" r="1.5" fill="#a855f7"/><circle cx="14" cy="14" r="1.5" fill="#a855f7"/><circle cx="26" cy="14" r="1.5" fill="#a855f7"/><circle cx="38" cy="14" r="1.5" fill="#a855f7"/>
             <circle cx="2" cy="26" r="1.5" fill="#a855f7"/><circle cx="14" cy="26" r="1.5" fill="#a855f7"/><circle cx="26" cy="26" r="1.5" fill="#a855f7"/><circle cx="38" cy="26" r="1.5" fill="#a855f7"/>
           </svg>
-
           <div class="review-card-content">
-            <div class="date-select-mobile-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; position: relative; z-index: 1;">
-              <div class="card-title-group">
-                <h2 id="dateDisplay" class="card-title">Attendance for Today</h2>
-                <div class="gradient-line"></div>
-              </div>
-              <input type="text" id="dateSelect" class="form-input-custom" style="width: 200px;">
+            <div class="tab-container">
+              <button class="tab-btn active" id="tabMarkBtn" onclick="switchTab('mark')">Mark Attendance</button>
+              <button class="tab-btn" id="tabSummaryBtn" onclick="switchTab('summary')">Attendance Summary</button>
             </div>
-
-            <table class="table table-responsive-mobile" style="position: relative; z-index: 1; margin-top: 10px;">
-              <thead>
-                <tr>
-                  <th>Student Name</th>
-                  <th style="text-align: right;">Status</th>
-                </tr>
-              </thead>
-              <tbody id="attendanceBody">
-              </tbody>
-            </table>
+            <!-- TAB 1: Mark Attendance -->
+            <div id="tabMark">
+              <div class="date-select-mobile-wrapper" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;position:relative;z-index:1;">
+                <div class="card-title-group">
+                  <h2 id="dateDisplay" class="card-title">Today's Attendance</h2>
+                  <div class="gradient-line"></div>
+                </div>
+                <input type="text" id="dateSelect" class="form-input-custom" style="width:200px;">
+              </div>
+              <table class="table table-responsive-mobile" style="position:relative;z-index:1;margin-top:10px;">
+                <thead><tr><th>Student Name</th><th style="text-align:right;">Status</th></tr></thead>
+                <tbody id="attendanceBody"></tbody>
+              </table>
+            </div>
+            <!-- TAB 2: Attendance Summary -->
+            <div id="tabSummary" style="display:none;">
+              <div class="summary-header-row">
+                <div class="card-title-group">
+                  <h2 class="card-title">Attendance Summary</h2>
+                  <p style="color:#9ca3af;margin:4px 0 0 0;font-size:0.88rem;">All-time attendance count per student</p>
+                  <div class="gradient-line" style="margin-top:8px;"></div>
+                </div>
+                <button class="btn-export" onclick="exportToCSV()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Export to Google Sheets (CSV)
+                </button>
+              </div>
+              <div id="summaryLoading" style="text-align:center;padding:32px;color:#9ca3af;display:none;">Loading summary...</div>
+              <table class="table" style="position:relative;z-index:1;">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th style="text-align:center;">Present</th>
+                    <th style="text-align:center;">Late</th>
+                    <th style="text-align:center;">Absent</th>
+                    <th style="text-align:center;">Total Days</th>
+                  </tr>
+                </thead>
+                <tbody id="summaryBody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </main>
@@ -231,6 +150,8 @@
     let selectedDate = null;
     let students = [];
     let attendanceRecords = {};
+    let summaryData = [];
+    let summaryLoaded = false;
 
     async function init() {
       const authData = await requireAuth('mentor');
@@ -238,15 +159,14 @@
       mentor = authData.user;
 
       selectedDate = new Date().toISOString().split('T')[0];
-      const dateSelect = document.getElementById('dateSelect');
-      
-      flatpickr(dateSelect, {
+
+      flatpickr(document.getElementById('dateSelect'), {
         defaultDate: selectedDate,
-        dateFormat: "Y-m-d",
+        dateFormat: 'Y-m-d',
         altInput: true,
-        altFormat: "d-m-Y",
+        altFormat: 'd-m-Y',
         disableMobile: true,
-        onChange: async function(selectedDates, dateStr, instance) {
+        onChange: async function(selectedDates, dateStr) {
           if (!dateStr) return;
           selectedDate = dateStr;
           await loadAttendance();
@@ -255,53 +175,106 @@
 
       const { data } = await db.from('profiles').select('id, full_name').eq('role', 'student').order('full_name');
       students = data || [];
-
       await loadAttendance();
-      
+
       document.getElementById('loader').style.display = 'none';
       document.getElementById('appContent').style.display = 'block';
     }
 
+    function switchTab(tab) {
+      document.getElementById('tabMark').style.display    = tab === 'mark'    ? 'block' : 'none';
+      document.getElementById('tabSummary').style.display = tab === 'summary' ? 'block' : 'none';
+      document.getElementById('tabMarkBtn').classList.toggle('active', tab === 'mark');
+      document.getElementById('tabSummaryBtn').classList.toggle('active', tab === 'summary');
+      if (tab === 'summary' && !summaryLoaded) loadSummary();
+    }
+
     async function loadAttendance() {
       const today = new Date().toISOString().split('T')[0];
-      if (selectedDate === today) {
-        document.getElementById('dateDisplay').textContent = 'Today Attendance';
-      } else {
-        document.getElementById('dateDisplay').textContent = `Attendance for ${selectedDate}`;
-      }
-      
-      const { data: records } = await db.from('attendance')
-        .select('*')
-        .eq('date', selectedDate);
-      
+      document.getElementById('dateDisplay').textContent =
+        selectedDate === today ? "Today's Attendance" : `Attendance for ${selectedDate}`;
+      const { data: records } = await db.from('attendance').select('*').eq('date', selectedDate);
       attendanceRecords = {};
-      (records || []).forEach(r => {
-        attendanceRecords[r.user_id] = r;
-      });
-
+      (records || []).forEach(r => { attendanceRecords[r.user_id] = r; });
       renderTable();
+    }
+
+    async function loadSummary() {
+      document.getElementById('summaryLoading').style.display = 'block';
+      document.getElementById('summaryBody').innerHTML = '';
+      const { data: allRecords, error } = await db.from('attendance').select('user_id, status');
+      if (error) {
+        console.error('Error loading summary:', error);
+        document.getElementById('summaryLoading').style.display = 'none';
+        return;
+      }
+      const counts = {};
+      students.forEach(s => { counts[s.id] = { name: s.full_name, present: 0, late: 0, absent: 0 }; });
+      (allRecords || []).forEach(r => {
+        if (!counts[r.user_id]) return;
+        if (r.status === 'present')     counts[r.user_id].present++;
+        else if (r.status === 'late')   counts[r.user_id].late++;
+        else if (r.status === 'absent') counts[r.user_id].absent++;
+      });
+      summaryData = Object.values(counts).sort((a, b) => a.name.localeCompare(b.name));
+      summaryLoaded = true;
+      document.getElementById('summaryLoading').style.display = 'none';
+      renderSummary();
+    }
+
+    function renderSummary() {
+      const tbody = document.getElementById('summaryBody');
+      tbody.innerHTML = '';
+      if (summaryData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:#9ca3af;">No attendance records found.</td></tr>`;
+        return;
+      }
+      summaryData.forEach(s => {
+        const total = s.present + s.late + s.absent;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight:600;color:#fff;">${(s.name || '').toUpperCase()}</td>
+          <td style="text-align:center;"><span class="badge badge-present">${s.present}</span></td>
+          <td style="text-align:center;"><span class="badge badge-late">${s.late}</span></td>
+          <td style="text-align:center;"><span class="badge badge-absent">${s.absent}</span></td>
+          <td style="text-align:center;color:#9ca3af;font-weight:600;">${total}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function exportToCSV() {
+      if (!summaryLoaded || summaryData.length === 0) {
+        alert('Please wait for the summary to load first.');
+        return;
+      }
+      const rows = [
+        ['Student Name', 'Present', 'Late', 'Absent', 'Total Days'],
+        ...summaryData.map(s => [s.name, s.present, s.late, s.absent, s.present + s.late + s.absent])
+      ];
+      const csv = rows.map(r => r.map(cell => `"${cell}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `attendance_summary_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     async function markStatus(studentId, status) {
       const existing = attendanceRecords[studentId];
-      
-      // Optimistic UI update
       attendanceRecords[studentId] = { ...existing, status };
       renderTable();
-
+      summaryLoaded = false;
       if (existing?.id) {
-        await db.from('attendance')
-          .update({ status, marked_by: mentor.id })
-          .eq('id', existing.id);
+        await db.from('attendance').update({ status, marked_by: mentor.id }).eq('id', existing.id);
       } else {
         const { data } = await db.from('attendance')
-          .insert({
-            user_id: studentId,
-            date: selectedDate,
-            status,
-            marked_by: mentor.id
-          }).select().single();
-        
+          .insert({ user_id: studentId, date: selectedDate, status, marked_by: mentor.id })
+          .select().single();
         if (data) attendanceRecords[studentId] = data;
       }
     }
@@ -309,30 +282,24 @@
     function renderTable() {
       const tbody = document.getElementById('attendanceBody');
       tbody.innerHTML = '';
-
       if (students.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding: 24px;">No students found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:24px;">No students found.</td></tr>';
         return;
       }
-
       students.forEach(student => {
-        const tr = document.createElement('tr');
         const status = attendanceRecords[student.id]?.status || '';
-
-        const getBtnStyle = (targetStatus, color) => {
-          if (status === targetStatus) {
-            return `background-color: ${color}; color: black; border: none; font-weight: 600; border-radius: 8px; padding: 8px 16px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;`;
-          }
-          return `background-color: #ccff00; color: black; border: none; font-weight: 600; border-radius: 8px; padding: 8px 16px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;`;
-        };
-
+        const getBtnStyle = (targetStatus, color) =>
+          status === targetStatus
+            ? `background-color:${color};color:black;border:none;font-weight:600;border-radius:8px;padding:8px 16px;font-size:0.85rem;cursor:pointer;transition:all 0.2s;`
+            : `background-color:#ccff00;color:black;border:none;font-weight:600;border-radius:8px;padding:8px 16px;font-size:0.85rem;cursor:pointer;transition:all 0.2s;`;
+        const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td style="font-weight: 500;" class="student-name-mobile">${(student.full_name || '').toUpperCase()}</td>
-          <td style="text-align: right;">
-            <div class="attendance-btns-mobile" style="display: inline-flex; gap: 8px;">
-              <button style="${getBtnStyle('present', '#15803d')}" onclick="markStatus('${student.id}', 'present')">Present</button>
-              <button style="${getBtnStyle('late', '#b45309')}" onclick="markStatus('${student.id}', 'late')">Late</button>
-              <button style="${getBtnStyle('absent', '#dc2626')}" onclick="markStatus('${student.id}', 'absent')">Absent</button>
+          <td style="font-weight:500;" class="student-name-mobile">${(student.full_name || '').toUpperCase()}</td>
+          <td style="text-align:right;">
+            <div class="attendance-btns-mobile" style="display:inline-flex;gap:8px;">
+              <button style="${getBtnStyle('present','#15803d')}" onclick="markStatus('${student.id}','present')">Present</button>
+              <button style="${getBtnStyle('late','#b45309')}"    onclick="markStatus('${student.id}','late')">Late</button>
+              <button style="${getBtnStyle('absent','#dc2626')}"  onclick="markStatus('${student.id}','absent')">Absent</button>
             </div>
           </td>
         `;
