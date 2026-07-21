@@ -545,13 +545,12 @@
         const isChecked = content === 'yes';
         inputHtml = `
             <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; margin-top: 24px; gap: 16px;">
-              <label style="display:flex; align-items:center; gap: 16px; cursor:pointer; background: rgba(255,255,255,0.05); padding: 18px 24px; border-radius: 16px; border: 2px solid ${isChecked ? '#22c55e' : 'rgba(255,255,255,0.15)'}; width: 100%; max-width: 320px; transition: all 0.2s;" onclick="toggleFeedbackCheck('${task.id}', this)">
+              <label id="feedbackLabel_${task.id}" style="display:flex; align-items:center; gap: 16px; cursor:pointer; background: rgba(255,255,255,0.05); padding: 18px 24px; border-radius: 16px; border: 2px solid ${isChecked ? '#22c55e' : 'rgba(255,255,255,0.15)'}; width: 100%; max-width: 320px; transition: all 0.2s;" onclick="toggleFeedbackCheck('${task.id}')">
                 <div id="feedbackCheck_${task.id}" style="width:28px; height:28px; border-radius:8px; border: 2px solid ${isChecked ? '#22c55e' : 'rgba(255,255,255,0.4)'}; background: ${isChecked ? '#22c55e' : 'transparent'}; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition: all 0.2s;">
                   ${isChecked ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>` : ''}
                 </div>
                 <span style="font-size:1.05rem; font-weight:600; color:inherit; line-height:1.3;">Completed Today's<br>Feedback</span>
               </label>
-              ${isChecked ? `<div style="display:flex; align-items:center; gap:6px; color:#22c55e; font-size:0.9rem; font-weight:600;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Marked as done!</div>` : `<p style="margin:0; font-size:0.85rem; opacity:0.55; text-align:center;">Tap to mark feedback as completed</p>`}
             </div>
         `;
       } else if (task.title === 'Fit & Strong') {
@@ -642,7 +641,7 @@
             <span class="card-icon">${style.icon}</span>
             <div class="card-title-wrap">
               <span class="card-number">0${index + 1}</span>
-              <h3 class="card-title-text">${task.title}${subLabel}</h3>
+              <h3 class="card-title-text">${task.title === 'Weight' ? 'Feedback' : task.title}${subLabel}</h3>
             </div>
           </div>
           <div class="card-body">
@@ -848,16 +847,29 @@
     }
 
 
-    async function toggleFeedbackCheck(taskId, labelEl) {
+    async function toggleFeedbackCheck(taskId) {
       const existing = taskEntries[taskId];
       const currentVal = existing ? existing.content : '';
       const newVal = currentVal === 'yes' ? 'no' : 'yes';
 
-      // Save to DB
-      await handleSaveEntry(taskId, newVal);
+      // In-place DOM update — no re-render so mobile card position is preserved
+      const checkDiv  = document.getElementById(`feedbackCheck_${taskId}`);
+      const labelEl   = document.getElementById(`feedbackLabel_${taskId}`);
+      const checked   = newVal === 'yes';
 
-      // Re-render only this card
-      renderTasks();
+      if (checkDiv) {
+        checkDiv.style.background    = checked ? '#22c55e' : 'transparent';
+        checkDiv.style.border        = `2px solid ${checked ? '#22c55e' : 'rgba(255,255,255,0.4)'}`;
+        checkDiv.innerHTML           = checked
+          ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>`
+          : '';
+      }
+      if (labelEl) {
+        labelEl.style.borderColor = checked ? '#22c55e' : 'rgba(255,255,255,0.15)';
+      }
+
+      // Save to DB (non-blocking)
+      handleSaveEntry(taskId, newVal);
     }
 
     init();
